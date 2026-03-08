@@ -1,10 +1,10 @@
 [![Coverage](https://codecov.io/gh/pinkycollie/deaf-first-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/pinkycollie/deaf-first-platform)
-
+[![Copilot code review](https://github.com/pinkycollie/DEAF-FIRST-PLATFORM/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer/badge.svg)](https://github.com/pinkycollie/DEAF-FIRST-PLATFORM/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer)
 # MBTQ Deaf-First Platform
 
 A comprehensive platform built with deaf-first principles, providing accessible financial services, AI-powered assistance, and decentralized governance.
-
-## 📚 MBTQ Universe Components
+ 
+## 📚 MBTQ Components
 
 This repository contains OpenAPI specifications for all five core services of the MBTQ Universe:
 
@@ -12,7 +12,7 @@ This repository contains OpenAPI specifications for all five core services of th
 Secure authentication system designed with deaf-first principles.
 
 - **Location**: `services/deafauth/`
-- **Base URL**: `https://api.mbtquniverse.com/auth`
+- **Base URL**: `https://api.mbtq.dev/auth`
 - **Documentation**: [DeafAUTH README](services/deafauth/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/deafauth/openapi/openapi.yaml)
 
@@ -20,7 +20,7 @@ Secure authentication system designed with deaf-first principles.
 Real-time accessibility features and synchronization.
 
 - **Location**: `services/pinksync/`
-- **Base URL**: `https://api.mbtquniverse.com/sync`
+- **Base URL**: `https://api.mbtq.dev/sync`
 - **Documentation**: [PinkSync README](services/pinksync/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/pinksync/openapi/openapi.yaml)
 
@@ -28,15 +28,15 @@ Real-time accessibility features and synchronization.
 Decentralized trust and verification layer.
 
 - **Location**: `services/fibonrose/`
-- **Base URL**: `https://api.mbtquniverse.com/blockchain`
+- **Base URL**: `https://api.mbtq.dev/trust`
 - **Documentation**: [Fibonrose README](services/fibonrose/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/fibonrose/openapi/openapi.yaml)
 
 ### 4. **360Magicians - AI Agents**
 Intelligent automation and assistance agents.
-
+===
 - **Location**: `services/magicians/`
-- **Base URL**: `https://api.mbtquniverse.com/ai`
+- **Base URL**: `https://api.mbtq.dev/ai`
 - **Documentation**: [360Magicians README](services/magicians/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/magicians/openapi/openapi.yaml)
 
@@ -44,7 +44,7 @@ Intelligent automation and assistance agents.
 Decentralized governance and community management.
 
 - **Location**: `services/dao/`
-- **Base URL**: `https://api.mbtquniverse.com/dao`
+- **Base URL**: `https://api.mbtq.dev/dao`
 - **Documentation**: [DAO README](services/dao/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/dao/openapi/openapi.yaml)
 
@@ -91,21 +91,21 @@ Authorization: Bearer <your_token>
 
 1. Register a new user:
 ```bash
-curl -X POST https://api.mbtquniverse.com/auth/register \
+curl -X POST https://api.mbtq.dev/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "secure_password"}'
 ```
 
 2. Login to get tokens:
 ```bash
-curl -X POST https://api.mbtquniverse.com/auth/login \
+curl -X POST https://api.mbtq.dev/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "secure_password"}'
 ```
 
 3. Use the access token for API calls:
 ```bash
-curl -X GET https://api.mbtquniverse.com/sync/status \
+curl -X GET https://api.mbtq.dev/sync/status \
   -H "Authorization: Bearer <your_access_token>"
 ```
 
@@ -128,9 +128,9 @@ curl -X GET https://api.mbtquniverse.com/sync/status \
 
 ### Fibonrose Endpoints
 
-- `POST /blockchain/verify` - Verify blockchain transaction
-- `GET /blockchain/trust-score` - Get trust score
-- `POST /blockchain/record` - Record new transaction
+- `POST /trust/blockchain/verify` - Verify blockchain transaction
+- `GET /trust//trust-score` - Get trust score
+- `POST /trust/blockchain/record` - Record new transaction
 
 ### 360Magicians Endpoints
 
