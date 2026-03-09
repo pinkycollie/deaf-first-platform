@@ -1,0 +1,43 @@
+name: Check Major Version Updates
+
+on:
+  schedule:
+    - cron: '0 10 1 * *'  # 1st of month at 10 AM
+  workflow_dispatch:
+
+jobs:
+  check-major:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check for major updates
+        id: check
+        run: |
+          echo "# 🚀 Major Version Updates Available" > report.md
+          echo "" >> report.md
+          
+          # Check each workspace
+          for dir in frontend backend services/* ai; do
+            if [ -f "$dir/package.json" ]; then
+              echo "## $dir" >> report.md
+              npm outdated --json | jq -r '
+                to_entries[] | 
+                select(.value.current | split(".")[0] != .value.latest | split(".")[0]) |
+                "- **\(.key)**: \(.value.current) → \(.value.latest) (major)"
+              ' >> report.md 2>&1 || true
+              echo "" >> report.md
+            fi
+          done
+      
+      - name: Create Issue
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: Major Version Updates Available
+          content-filepath: ./report.md
+          labels: major-update, review-required

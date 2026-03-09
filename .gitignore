@@ -1,5 +1,44 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Dependencies
-node_modules/
+node_modules/**
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/**
+env/**
+ENV/**
+.venv
+
+# Build outputs
+dist/**
+build/**
+*.egg-info/**
+.next/**
+out/**
+
+# IDE
+.vscode/**
+.idea/**
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+# Dependencies
+node_modules/**
 .pnp
 .pnp.js
 
@@ -9,10 +48,11 @@ coverage/
 .nyc_output
 
 # Production builds
-dist/
-build/
-out/
-.next/
+dist/**
+build/**
+out/**
+.next/**
+"next-env.d.ts",
 
 # Environment variables
 .env
@@ -27,6 +67,16 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Testing
+coverage/**
+.nyc_output/**
+.pytest_cache/**
+
+# Temporary files
+tmp/**
+temp/**
+*.tmp
 lerna-debug.log*
 pnpm-debug.log*
 
@@ -35,14 +85,14 @@ pnpm-debug.log*
 Thumbs.db
 
 # Editor directories and files
-.vscode/
-.idea/
+.vscode/**
+.idea/**
 *.swp
 *.swo
 *~
 .project
 .classpath
-.settings/
+.settings/**
 
 # TypeScript
 *.tsbuildinfo
@@ -52,14 +102,23 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
+# Generated SDKs
+sdks/**
+
+# API keys and secrets
+*.pem
+*.key
+credentials.json
+service-account.json
 # Docker
-.docker/
+.docker/**
 
 # Temporary files
-tmp/
-temp/
+tmp/**
+temp/**
 *.tmp
 
 # MCP Server specific
-.mcp/
-mcp-data/
+.mcp/**
+mcp-data/**
+
