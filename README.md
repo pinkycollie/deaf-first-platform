@@ -6,13 +6,13 @@ A comprehensive platform built with deaf-first principles, providing accessible 
  
 ## 📚 MBTQ Components
 
-This repository contains OpenAPI specifications for all five core services of the MBTQ Universe:
+This repository contains OpenAPI specifications for all five core services of the MBTQ.dev:
 
 ### 1. **DeafAUTH - Identity Cortex**
 Secure authentication system designed with deaf-first principles.
 
 - **Location**: `services/deafauth/`
-- **Base URL**: `https://api.mbtq.dev/auth`
+- **Base URL**: `https://api.mbtq.dev/auth` auth.mbtq.dev
 - **Documentation**: [DeafAUTH README](services/deafauth/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/deafauth/openapi/openapi.yaml)
 
@@ -20,7 +20,7 @@ Secure authentication system designed with deaf-first principles.
 Real-time accessibility features and synchronization.
 
 - **Location**: `services/pinksync/`
-- **Base URL**: `https://api.mbtq.dev/sync`
+- **Base URL**: `https://api.mbtq.dev/sync`sync.mbtq.dev
 - **Documentation**: [PinkSync README](services/pinksync/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/pinksync/openapi/openapi.yaml)
 
@@ -28,7 +28,7 @@ Real-time accessibility features and synchronization.
 Decentralized trust and verification layer.
 
 - **Location**: `services/fibonrose/`
-- **Base URL**: `https://api.mbtq.dev/trust`
+- **Base URL**: `https://api.mbtq.dev/trust` trust.mbtq.dev
 - **Documentation**: [Fibonrose README](services/fibonrose/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/fibonrose/openapi/openapi.yaml)
 
@@ -36,7 +36,7 @@ Decentralized trust and verification layer.
 Intelligent automation and assistance agents.
 ===
 - **Location**: `services/magicians/`
-- **Base URL**: `https://api.mbtq.dev/ai`
+- **Base URL**: `https://api.mbtq.dev/magicians` magicians.mbtq.dev
 - **Documentation**: [360Magicians README](services/magicians/README.md)
 - **OpenAPI Spec**: [openapi.yaml](services/magicians/openapi/openapi.yaml)
 
@@ -52,7 +52,7 @@ Decentralized governance and community management.
 
 ✔ All endpoints documented with OpenAPI 3.1  
 ✔ Standardized responses across all services  
-✔ Shared DeafAUTH security scheme  
+✔ Shared DeafAUTH paseto security scheme  
 ✔ Tags, components, pagination, error schemas  
 ✔ Cloudflare-friendly JSON-only style  
 ✔ **Automated API testing with Jest**  
@@ -575,31 +575,31 @@ Each workspace is independently versioned and can be developed, tested, and depl
 - JWT authentication
 - RESTful endpoints
 
-### DeafAUTH (@deaf-first/deafauth)
+### DeafAUTH (@mbtq/deafauth)
 - Specialized authentication service
 - Accessible authentication flows
 - MCP server for auth operations
 - User preference management
 
-### PinkSync (@deaf-first/pinksync)
+### PinkSync (@mbtq/pinksync)
 - Real-time WebSocket synchronization
 - Redis-based pub/sub
 - MCP server for sync operations
 - Event-driven architecture
 
-### FibonRose (@deaf-first/fibonrose)
+### FibonRose (@mbtq/fibonrose)
 - Mathematical optimization algorithms
 - Fibonacci-based scheduling
 - MCP server for optimization queries
 - Performance analytics
 
-### Accessibility Nodes (@deaf-first/accessibility-nodes)
+### Accessibility Nodes (@mbtq/accessibility-nodes)
 - Modular accessibility features
 - Sign language interpretation
 - Visual accessibility enhancements
 - MCP server for accessibility APIs
 
-### AI Services (@deaf-first/ai)
+### AI Services (@mbtq/ai)
 - AI-powered workflows
 - Natural language processing
 - Sign language generation
@@ -621,18 +621,20 @@ REDIS_URL=redis://localhost:6379
 JWT_SECRET=your-secret-key
 JWT_EXPIRY=7d
 
+#Paseto
+
 # Frontend
 VITE_API_URL=http://localhost:3000
 VITE_WS_URL=ws://localhost:3001
 
-# Services
+# Services Pending
 DEAFAUTH_PORT=3002
 PINKSYNC_PORT=3003
 FIBONROSE_PORT=3004
 A11Y_PORT=3005
-AI_PORT=3006
+AI_PORT=8###
 
-# AI Services
+# MagicianCore Services
 OPENAI_API_KEY=your-openai-key
 
 # Webhook Configuration
@@ -674,7 +676,7 @@ MIT License - see LICENSE file for details
 - Deaf-first design
 - Accessibility
 - SaaS ecosystem
-- AI workflows
-- MCP server
+- modules workflows
+- http platform management 
 - Real-time synchronization
 - Sign language support
