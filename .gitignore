@@ -27,6 +27,13 @@ build/**
 .next/**
 out/**
 
+
+# Deployment platform overrides
+.replit
+replit.nix
+vercel.json
+.vercel/
+
 # IDE
 .vscode/**
 .idea/**
