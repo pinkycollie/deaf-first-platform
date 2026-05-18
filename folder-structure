@@ -1,0 +1,38 @@
+deaf-first-platform/
+  src/
+    app.js
+    server.js
+
+    deafauth/
+      controller.js
+      service.js
+      repo.js
+
+    pinksync/
+      controller.js
+      service.js
+      repo.js
+
+    fibonrose/
+      controller.js
+      service.js
+      repo.js
+
+    ai/
+      controller.js
+      service.js
+
+    a11y/
+      controller.js
+      service.js
+
+    handlers/
+      errorHandler.js
+
+    routes/
+      v1/
+        deafauth.js
+        pinksync.js
+        fibonrose.js
+        ai.js
+        a11y.js
