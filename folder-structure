@@ -1,38 +1,29 @@
-deaf-first-platform/
-  src/
-    app.js
-    server.js
-
+/
+  services/
     deafauth/
-      controller.js
-      service.js
-      repo.js
-
     pinksync/
-      controller.js
-      service.js
-      repo.js
-
     fibonrose/
-      controller.js
-      service.js
-      repo.js
-
     ai/
-      controller.js
-      service.js
+    dao/
 
-    a11y/
-      controller.js
-      service.js
+  apps/
+    backend/
+    frontend/
+    ai/
 
-    handlers/
-      errorHandler.js
+  infra/
+    terraform/
+    kubernetes/
 
-    routes/
-      v1/
-        deafauth.js
-        pinksync.js
-        fibonrose.js
-        ai.js
-        a11y.js
+  docs/
+    api/
+    architecture/
+    guides/
+
+  .github/
+    workflows/
+
+  scripts/
+  tests/
+  package.json
+  README.md
