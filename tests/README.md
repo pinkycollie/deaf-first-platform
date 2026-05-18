@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # Testing Documentation
 
-This directory contains automated tests for the MBTQ Universe deaf-first platform APIs.
+This directory contains automated tests for the MBTQ.dev's open source deaf-first platform APIs.
 
 ## Test Structure
 
@@ -127,7 +127,7 @@ Follow the existing test patterns:
 
 ```javascript
 describe('Service Name API', () => {
-  const baseURL = 'https://api.mbtquniverse.com/service';
+  const baseURL = 'https://api.mbtq.dev/deaf-first/service';
   const authToken = 'Bearer valid_token';
 
   beforeEach(() => {
@@ -339,7 +339,7 @@ Follow the existing test patterns:
 
 ```javascript
 describe('Service Name API', () => {
-  const baseURL = 'https://api.mbtquniverse.com/service';
+  const baseURL = 'https://api.mbtq.dev/deaf-first/service';
   const authToken = 'Bearer valid_token';
 
   beforeEach(() => {
