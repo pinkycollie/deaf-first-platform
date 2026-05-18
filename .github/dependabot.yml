@@ -1,63 +1,59 @@
+# .github/dependabot.yml - COMPLETE VERSION
 version: 2
 updates:
-  # Enable version updates for npm dependencies
+  # Root dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "pinkycollie"
-    assignees:
-      - "pinkycollie"
-    labels:
-      - "dependencies"
-      - "npm"
-    # Group all patch and minor updates together
     groups:
-      development-dependencies:
-        patterns:
-          - "@types/*"
-          - "@typescript-eslint/*"
-          - "eslint*"
-          - "vite*"
-          - "vitest*"
-        update-types:
-          - "patch"
-          - "minor"
-      production-dependencies:
-        patterns:
-          - "*"
-        exclude-patterns:
-          - "@types/*"
-          - "@typescript-eslint/*"
-          - "eslint*"
-          - "vite*"
-          - "vitest*"
-        update-types:
-          - "patch"
-    # Security updates have higher priority
-    commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
-      include: "scope"
-
-  # Enable version updates for GitHub Actions
+      root-deps:
+        patterns: ["*"]
+    
+  # Frontend workspace
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      frontend-deps:
+        patterns: ["*"]
+  
+  # Backend workspace
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+  
+  # Services
+  - package-ecosystem: "npm"
+    directory: "/services/deafauth"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "npm"
+    directory: "/services/pinksync"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "npm"
+    directory: "/services/fibonrose"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "npm"
+    directory: "/services/accessibility-nodes"
+    schedule:
+      interval: "weekly"
+  
+  # AI workspace
+  - package-ecosystem: "npm"
+    directory: "/ai"
+    schedule:
+      interval: "weekly"
+  
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    reviewers:
-      - "pinkycollie"
-    assignees:
-      - "pinkycollie"
-    labels:
-      - "dependencies"
-      - "github-actions"
-    commit-message:
-      prefix: "ci"
-      include: "scope"
-
+      interval: "monthly"
