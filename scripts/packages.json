@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "update:all": "node scripts/update-workspaces.js",
+    "update:eslint": "node scripts/update-eslint.js",
+    "deps:check": "npm outdated --all",
+    "deps:audit": "npm audit",
+    "deps:fix": "npm audit fix",
+    "deps:summary": "node scripts/dependency-summary.js"
+  }
+}

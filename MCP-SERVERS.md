@@ -4,6 +4,13 @@
 
 The DEAF-FIRST Platform includes five Model Context Protocol (MCP) servers that provide programmatic access to various services through a standardized interface.
 
+    mbtq://tools/deafauth — identity verification protocol 
+	∙	mbtq://tools/pinksync — accessibility protocol 
+	∙	mbtq://tools/fibronrose — trust query protocol 
+	∙	mbtq://tools/magicians — agent dispatch (recommend-only, enforced at protocol level)
+
+Transport: stdio locally, Cloudflare Worker SSE at edge — with PinkSync as the reliability layer in between.
+
 ## Available MCP Servers
 
 ### 1. DeafAUTH MCP Server
