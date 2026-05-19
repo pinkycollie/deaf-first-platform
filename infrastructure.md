@@ -1,7 +1,7 @@
 # MBTQ.dv: Complete GitHub Repository Structure
 
 ```
-mbtq-deaf-first-platform/
+deaf-first-platform/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
