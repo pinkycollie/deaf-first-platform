@@ -8,7 +8,7 @@ The MBTQ Deaf-First Platform is a comprehensive microservices architecture desig
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MBTQ Universe Platform                             │
+│                           MBTQ.dev Platform                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
@@ -74,7 +74,7 @@ The MBTQ Deaf-First Platform is a comprehensive microservices architecture desig
 ## Service Components
 
 ### 1. DeafAUTH (Identity Cortex)
-**Base URL:** `https://api.mbtquniverse.com/auth`
+**Base URL:** `https://api.mbtq.DEV/auth`
 
 DeafAUTH is the central authentication and identity management service designed with deaf-first principles.
 
@@ -141,7 +141,7 @@ Fibonrose provides blockchain-based trust verification and transaction recording
 | POST | `/record` | Record new transaction |
 
 ### 4. 360Magicians (AI Agent Platform)
-**Base URL:** `https://api.mbtquniverse.com/ai`
+**Base URL:** `https://api.mbtq.dev/ai`
 
 The comprehensive AI agent platform with 62 endpoints covering agent lifecycle, execution, tools, memory, and workflows.
 
@@ -153,7 +153,7 @@ The comprehensive AI agent platform with 62 endpoints covering agent lifecycle, 
 - **Workflows:** DAG-based workflow orchestration
 
 ### 5. DAO (Governance)
-**Base URL:** `https://api.mbtquniverse.com/dao`
+**Base URL:** `https://api.mbtq.dev/dao`
 
 Decentralized governance for platform decisions.
 
