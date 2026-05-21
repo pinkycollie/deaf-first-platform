@@ -1,6 +1,6 @@
 # Fetch API Examples
 
-This document provides browser-compatible Fetch API examples for all MBTQ Universe services. These examples work in modern browsers and can be used directly in web applications.
+This document provides browser-compatible Fetch API examples for all DEAF-FIRST services. These examples work in modern browsers and can be used directly in web applications.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This document provides browser-compatible Fetch API examples for all MBTQ Univer
 
 ```javascript
 async function registerUser(email, password) {
-  const response = await fetch('https://api.mbtquniverse.com/auth/register', {
+  const response = await fetch('https://api.mbtq.DEV/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ try {
 
 ```javascript
 async function loginUser(email, password) {
-  const response = await fetch('https://api.mbtquniverse.com/auth/login', {
+  const response = await fetch('https://api.mbtq.dev/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ try {
 async function verifyToken() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/auth/verify', {
+  const response = await fetch('https://api.mbtq.dev/auth/verify', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -120,7 +120,7 @@ if (verification.valid) {
 async function refreshTokens() {
   const refreshToken = localStorage.getItem('refreshToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/auth/refresh', {
+  const response = await fetch('https://api.mbtq.dev/auth/refresh', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -157,7 +157,7 @@ async function refreshTokens() {
 async function getSyncStatus() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/sync/status', {
+  const response = await fetch('https://api.mbtq.dev/sync/status', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -183,7 +183,7 @@ console.log('Latency:', status.latencyMs, 'ms');
 async function updatePreferences(preferences) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/sync/preferences', {
+  const response = await fetch('https://api.mbtq.dev/sync/preferences', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -215,7 +215,7 @@ console.log('Preferences updated:', prefs);
 async function getFeatures() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/sync/features', {
+  const response = await fetch('https://api.mbtq.dev/sync/features', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -246,7 +246,7 @@ features.forEach(feature => {
 async function verifyTransaction(txId) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/blockchain/verify', {
+  const response = await fetch('https://api.mbtq.dev/blockchain/verify', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -273,7 +273,7 @@ console.log('Transaction valid:', verification.valid);
 async function getTrustScore() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/blockchain/trust-score', {
+  const response = await fetch('https://api.mbtq.dev/blockchain/trust-score', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -298,8 +298,8 @@ console.log('Last Updated:', score.lastUpdated);
 ```javascript
 async function recordTransaction(transaction) {
   const accessToken = localStorage.getItem('accessToken');
-  
-  const response = await fetch('https://api.mbtquniverse.com/blockchain/record', {
+
+  const response = await fetch('https://api.mbtq.dev/blockchain/record', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -337,7 +337,7 @@ console.log('Transaction recorded:', tx);
 async function createAgent(name, model) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/ai/agents', {
+  const response = await fetch('https://api.mbtq.dev/ai/agents', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -364,7 +364,7 @@ console.log('Agent created:', agent.id);
 async function listAgents() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/ai/agents', {
+  const response = await fetch('https://api.mbtq.dev/ai/agents', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -391,7 +391,7 @@ agents.forEach(agent => {
 async function executeAgent(agentId, input) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch(`https://api.mbtquniverse.com/ai/agents/${agentId}/execute`, {
+  const response = await fetch(`https://api.mbtq.dev/ai/agents/${agentId}/execute`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -420,7 +420,7 @@ console.log('Output:', run.output);
 async function getRunStatus(runId) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch(`https://api.mbtquniverse.com/ai/runs/${runId}`, {
+  const response = await fetch(`https://api.mbtq.dev/ai/runs/${runId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -461,7 +461,7 @@ async function waitForCompletion(runId, maxAttempts = 30) {
 async function listTools() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/ai/tools', {
+  const response = await fetch('https://api.mbtq.dev/ai/tools', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -492,7 +492,7 @@ tools.forEach(tool => {
 async function listProposals() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/dao/proposals', {
+  const response = await fetch('https://api.mbtq.dev/dao/proposals', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -520,7 +520,7 @@ proposals.forEach(proposal => {
 async function submitVote(proposalId, vote) {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/dao/vote', {
+  const response = await fetch('https://api.mbtq.dev/dao/vote', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -548,7 +548,7 @@ console.log('Vote submitted successfully');
 async function listMembers() {
   const accessToken = localStorage.getItem('accessToken');
   
-  const response = await fetch('https://api.mbtquniverse.com/dao/members', {
+  const response = await fetch('https://api.mbtq.dev/dao/members', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -579,7 +579,7 @@ Here's a complete example of an MBTQ API client using the Fetch API:
  * Complete browser-compatible client using Fetch API
  */
 class MBTQClient {
-  constructor(baseUrl = 'https://api.mbtquniverse.com') {
+  constructor(baseUrl = 'https://api.mbtq.dev') {
     this.baseUrl = baseUrl;
     this.accessToken = localStorage.getItem('accessToken');
     this.refreshToken = localStorage.getItem('refreshToken');
