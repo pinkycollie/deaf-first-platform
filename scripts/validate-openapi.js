@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * OpenAPI Specification Validator
  * Validates all OpenAPI specs in the services directory
