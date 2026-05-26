@@ -1,0 +1,29 @@
+/
+  services/
+    deafauth/
+    pinksync/
+    fibonrose/
+    ai/
+    dao/
+
+  apps/
+    backend/
+    frontend/
+    ai/
+
+  infra/
+    terraform/
+    kubernetes/
+
+  docs/
+    api/
+    architecture/
+    guides/
+
+  .github/
+    workflows/
+
+  scripts/
+  tests/
+  package.json
+  README.md
