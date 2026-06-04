@@ -5,6 +5,10 @@ on:
     - cron: '0 10 1 * *'  # 1st of month at 10 AM
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   check-major:
     runs-on: ubuntu-latest

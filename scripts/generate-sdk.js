@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * SDK Generator Script
  * Generates TypeScript and Python SDKs from OpenAPI specifications

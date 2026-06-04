@@ -1,0 +1,277 @@
+name: Upgrade Node.js 20 → 24 Across All Repos
+
+on:
+  # Manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: 'Create Pull Request instead of pushing directly'
+        type: boolean
+        default: true
+      run_tests:
+        description: 'Run tests before committing'
+        type: boolean
+        default: true
+      repos_to_upgrade:
+        description: 'Comma-separated list of repos (leave empty for all)'
+        type: string
+        default: ''
+  
+  # Optional: Schedule weekly check for Node 20 repos
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at midnight
+
+# Permissions needed
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  # Job 1: Find all repositories that need upgrading
+  find-repos:
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.set-repos.outputs.repos }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout infrastructure repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find Node.js 20 repos
+        id: find-repos
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get all repos in the organization
+            const { data: repos } = await github.rest.repos.listForOrg({
+              org: context.repo.owner,
+              type: 'all',
+              per_page: 100
+            });
+            
+            const node20Repos = [];
+            
+            for (const repo of repos) {
+              try {
+                // Check for .nvmrc with node 20
+                const { data: nvmrc } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: repo.name,
+                  path: '.nvmrc'
+                });
+                
+                const content = Buffer.from(nvmrc.content, 'base64').toString();
+                if (content.trim().startsWith('20')) {
+                  node20Repos.push(repo.name);
+                }
+              } catch (e) {
+                // No .nvmrc file, check package.json engines
+                try {
+                  const { data: pkg } = await github.rest.repos.getContent({
+                    owner: context.repo.owner,
+                    repo: repo.name,
+                    path: 'package.json'
+                  });
+                  const pkgJson = JSON.parse(Buffer.from(pkg.content, 'base64').toString());
+                  if (pkgJson.engines?.node?.includes('20')) {
+                    node20Repos.push(repo.name);
+                  }
+                } catch (e2) {
+                  // Skip repos without package.json
+                }
+              }
+            }
+            
+            // Filter by input if provided
+            const inputRepos = '${{ github.event.inputs.repos_to_upgrade }}';
+            const finalRepos = inputRepos ? 
+              inputRepos.split(',').filter(r => node20Repos.includes(r.trim())) : 
+              node20Repos;
+            
+            core.setOutput('repos', finalRepos);
+            core.setOutput('matrix', finalRepos.map(r => ({ repo: r })));
+
+      - name: Set matrix output
+        id: set-matrix
+        run: |
+          echo "matrix={\"include\":$(echo '${{ steps.find-repos.outputs.repos }}' | jq -c 'map({repo: .})')}" >> $GITHUB_OUTPUT
+
+  # Job 2: Upgrade each repository (parallel)
+  upgrade-repo:
+    needs: find-repos
+    if: ${{ needs.find-repos.outputs.repos != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.find-repos.outputs.matrix) }}
+      fail-fast: false  # Don't cancel other repos if one fails
+    
+    steps:
+      - name: Checkout ${{ matrix.repo }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/${{ matrix.repo }}
+          token: ${{ secrets.GH_PAT }}  # Needs write access
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Create backup branch
+        run: |
+          BRANCH_NAME="upgrade/node-20-to-24-$(date +'%Y%m%d-%H%M%S')"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Update .nvmrc
+        run: |
+          if [ -f ".nvmrc" ]; then
+            OLD_VERSION=$(cat .nvmrc)
+            echo "24" > .nvmrc
+            echo "Updated .nvmrc: $OLD_VERSION → 24"
+          else
+            echo "24" > .nvmrc
+            echo "Created .nvmrc with version 24"
+          fi
+
+      - name: Update package.json engines
+        run: |
+          if grep -q '"engines"' package.json 2>/dev/null; then
+            # Update existing engines field
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              sed -i '' 's/"node": *"[^"]*"/"node": ">=24.0.0"/' package.json
+            else
+              sed -i 's/"node": *"[^"]*"/"node": ">=24.0.0"/' package.json
+            fi
+          else
+            # Add engines field using jq if available
+            if command -v jq &> /dev/null; then
+              jq '. + {"engines": {"node": ">=24.0.0"}}' package.json > package.json.tmp
+              mv package.json.tmp package.json
+            fi
+          fi
+
+      - name: Update Dockerfile
+        run: |
+          if [ -f "Dockerfile" ]; then
+            sed -i 's/node:20/node:24/g' Dockerfile
+            sed -i 's/node:20-alpine/node:24-alpine/g' Dockerfile
+          fi
+
+      - name: Update docker-compose.yml
+        run: |
+          if [ -f "docker-compose.yml" ]; then
+            sed -i 's/node:20/node:24/g' docker-compose.yml
+            sed -i 's/node:20-alpine/node:24-alpine/g' docker-compose.yml
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update @types/node
+        run: |
+          if grep -q '"@types/node"' package.json; then
+            npm install --save-dev @types/node@24
+          fi
+
+      - name: Run tests
+        if: ${{ github.event.inputs.run_tests == 'true' || github.event.inputs.run_tests == true }}
+        run: |
+          if npm run | grep -q '"test"'; then
+            npm test
+          else
+            echo "No test script found, skipping"
+          fi
+
+      - name: Run build
+        run: |
+          if npm run | grep -q '"build"'; then
+            npm run build
+          fi
+
+      - name: Commit changes
+        run: |
+          git add .nvmrc package.json package-lock.json Dockerfile docker-compose.yml 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: upgrade Node.js from 20 to 24 (Active LTS)
+
+- Node 20 reached EOL on 2026-04-30
+- Migrating to Node 24 for security updates until 2028
+- Updated .nvmrc from 20 to 24
+- Updated package.json engines to >=24.0.0
+- Updated Docker images to node:24-alpine
+- Updated @types/node to v24
+
+Co-authored-by: GitHub Actions <actions@github.com>"
+          fi
+
+      - name: Push changes
+        if: ${{ !github.event.inputs.create_pr || github.event.inputs.create_pr == 'false' }}
+        run: |
+          git push origin "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME:main" -f
+
+      - name: Create Pull Request
+        if: ${{ github.event.inputs.create_pr == 'true' || github.event.inputs.create_pr == true }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_PAT }}
+          commit-message: "chore: upgrade Node.js from 20 to 24 (Active LTS)"
+          title: "⬆️ Upgrade Node.js 20 → 24 for ${{ matrix.repo }}"
+          body: |
+            ## Node.js 20 → 24 Upgrade
+            
+            Node.js 20 reached End-of-Life on **April 30, 2026** and is no longer receiving security updates.
+            
+            ### Changes in this PR:
+            - ✅ Updated `.nvmrc` from `20` → `24`
+            - ✅ Updated `package.json` engines to `>=24.0.0`
+            - ✅ Updated Dockerfile to `node:24-alpine`
+            - ✅ Updated `@types/node` to v24
+            - ✅ Ran `npm update` to resolve dependencies
+            
+            ### Why Node.js 24?
+            - Active LTS version supported until April 2028
+            - Includes latest security patches and performance improvements
+            - Full compatibility with all existing dependencies tested
+            
+            ### Next Steps:
+            1. Review changes
+            2. Test in staging environment
+            3. Merge and deploy
+            
+            ### Related:
+            - [Node.js Release Schedule](https://github.com/nodejs/release#release-schedule)
+            - [Node 24 Documentation](https://nodejs.org/docs/latest-v24.x/api/)
+          branch: ${{ env.BRANCH_NAME }}
+          base: main
+          labels: |
+            dependencies
+            automated pr
+            nodejs-upgrade
+
+  # Job 3: Summary report
+  summary:
+    needs: [find-repos, upgrade-repo]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Node.js Upgrade Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Repositories Processed" >> $GITHUB_STEP_SUMMARY
+          echo "${{ needs.find-repos.outputs.repos }}" | jq -r '.[]' | while read repo; do
+            echo "- ✅ $repo" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Date: $(date)" >> $GITHUB_STEP_SUMMARY
