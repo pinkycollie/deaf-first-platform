@@ -1,4 +1,4 @@
-<<<<<<< main
+[![CodeQL](https://github.com/pinkycollie/deaf-first-platform/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/pinkycollie/deaf-first-platform/actions/workflows/github-code-scanning/codeql)
 [![Coverage](https://codecov.io/gh/pinkycollie/deaf-first-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/pinkycollie/deaf-first-platform)
 [![Copilot code review](https://github.com/pinkycollie/DEAF-FIRST-PLATFORM/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer/badge.svg)](https://github.com/pinkycollie/DEAF-FIRST-PLATFORM/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer)
 # MBTQ Deaf-First Platform
