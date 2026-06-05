@@ -1,0 +1,44 @@
+name: MBTQ Sovereign Production Build
+
+on:
+  push:
+    branches: [main], [master]
+
+jobs:
+  sanitize_and_compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node & Pnpm Environment
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node Runtime Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - [span_4](start_span)name: Install Global Vercel Standalone CLI
+        run: npm install --global vercel@latest[span_4](end_span)
+
+      - [span_5](start_span)name: Authenticate & Pull Explicit Environment Data
+        # Pulls down variables manually so Vercel doesn't auto-inject them[span_5](end_span)
+        run: vercel pull --yes --environment=production --token=${{ secrets.[span_6](start_span)VERCEL_TOKEN }}[span_6](end_span)
+
+      - [span_7](start_span)name: Run Anti-Vendor-Lock Sanitizer
+        # Executes our shell script to scrub out the background telemetry/hidden configurations[span_7](end_span)
+        run: ./scripts/strip-magic.sh
+
+      - [span_8](start_span)name: Compile Sovereign Artifacts
+        # Compiles strictly using the code inside the runner[span_8](end_span)
+        run: vercel build --prod --token=${{ secrets.[span_9](start_span)VERCEL_TOKEN }}[span_9](end_span)
+
+      - [span_10](start_span)name: Deploy Pure Build Tree
+        # CRITICAL STEP: --prebuilt skips the Vercel cloud machine logic entirely[span_10](end_span)
+        # It uploads ONLY the explicit output created in this GitHub Runner
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.[span_11](start_span)VERCEL_TOKEN }}[span_11](end_span)
