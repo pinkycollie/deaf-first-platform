@@ -1,12 +1,19 @@
 name: Check Major Version Updates
 
 on:
-  schedule:
+  tr:
     - cron: '0 10 1 * *'  # 1st of month at 10 AM
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+  packages: read
+  artifact-metadata: read
+  attestations: write 
+
 jobs:
-  check-major:
+  check-major9:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       
       - name: Check for major updates
         id: check
