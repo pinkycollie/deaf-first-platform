@@ -2,7 +2,7 @@ name: MBTQ Sovereign Production Build
 
 on:
   push:
-    branches: [main], [master]
+    branches: [master]
 
 jobs:
   sanitize_and_compile:
@@ -18,9 +18,9 @@ jobs:
           run_install: false
 
       - name: Setup Node Runtime Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.5.0
         with:
-          node-version: 20
+          node-version: 24
           cache: 'pnpm'
 
       - [span_4](start_span)name: Install Global Vercel Standalone CLI
