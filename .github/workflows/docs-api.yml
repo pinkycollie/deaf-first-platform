@@ -1,0 +1,80 @@
+name: API Docs + SDKs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "openapi/**"
+      - ".github/workflows/docs-api.yml"
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Redoc CLI
+        run: npm install -g @redocly/cli
+
+      - name: Install Swagger UI
+        run: npm install swagger-ui-dist
+
+      - name: Prepare docs folder
+        run: mkdir -p public/docs
+
+      # --- REDOC ---
+      - name: Generate Redoc HTML
+        run: |
+          redocly build-docs openapi/openapi.yaml \
+            --output public/docs/index.html \
+            --title "MBTQ API Documentation"
+
+      # --- SWAGGER UI ---
+      - name: Build Swagger UI
+        run: |
+          mkdir -p public/docs/swagger
+          cp -r node_modules/swagger-ui-dist/* public/docs/swagger/
+          cp openapi/openapi.yaml public/docs/swagger/openapi.yaml
+          sed -i 's|https://petstore.swagger.io/v2/swagger.json|./openapi.yaml|g' public/docs/swagger/index.html
+
+      # --- SDK GENERATION ---
+      - name: Install OpenAPI Generator
+        run: |
+          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.0.0/openapi-generator-cli-7.0.0.jar -O openapi-generator.jar
+
+      - name: Generate Python SDK
+        run: |
+          java -jar openapi-generator.jar generate \
+            -i openapi/openapi.yaml \
+            -g python \
+            -o public/docs/sdk-python
+
+      - name: Generate TypeScript SDK
+        run: |
+          java -jar openapi-generator.jar generate \
+            -i openapi/openapi.yaml \
+            -g typescript-fetch \
+            -o public/docs/sdk-typescript
+
+      - name: Generate Go SDK
+        run: |
+          java -jar openapi-generator.jar generate \
+            -i openapi/openapi.yaml \
+            -g go \
+            -o public/docs/sdk-go
+
+      # --- DEPLOY ---
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/docs
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
