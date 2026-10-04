@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v6.5.0
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: 'npm'
 
       - [span_4](start_span)name: Install Global Vercel Standalone CLI
         run: npm install --global vercel@latest[span_4](end_span)
