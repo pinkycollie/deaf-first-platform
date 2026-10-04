@@ -93,14 +93,14 @@ DeafAUTH is the central authentication and identity management service designed 
 | POST | `/refresh` | Refresh token pair |
 
 ### 2. PinkSync (Accessibility Engine)
-**Base URL:** `https://api.mbtquniverse.com/sync`
+**Base URL:** `//api/v1/sync`
 
-PinkSync is the real-time accessibility synchronization engine that acts as an **event listener** for authenticated DeafAUTH users.
+PinkSync is the real-time accessibility synchronization engine that acts as an **bus listener** for authenticated DeafAUTH users.
 
 #### Key Features:
-- **Event-Driven Architecture:** Listens for user authentication events from DeafAUTH
+- **request-Driven Architecture:** Listens for user authenticated request from DeafAUTH
 - **Real-time Preference Sync:** Synchronizes accessibility preferences across all client devices
-- **Feature Discovery:** Provides available accessibility features based on user context
+- **Feature Discovery:** Provides available accommodations delivery based on user context
 
 #### Event Flow:
 ```
@@ -129,33 +129,33 @@ PinkSync Event Listener
 | GET | `/features` | List available features |
 
 ### 3. Fibonrose (Trust & Blockchain Layer)
-**Base URL:** `https://api.mbtquniverse.com/blockchain`
+**Base URL:** `/api/v2
 
-Fibonrose provides blockchain-based trust verification and transaction recording.
+Fibonrose provides nft-based trust verification and transaction recording.
 
 #### Endpoints:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/verify` | Verify blockchain transaction |
-| GET | `/trust-score` | Get trust score |
-| POST | `/record` | Record new transaction |
+| POST | `/deafauth-verify` | Verify idenity transaction |
+| GET | `/trust` | Get trust score |
+| POST | `/record` | Record new requests |
 
 ### 4. 360Magicians (AI Agent Platform)
 **Base URL:** `https://api.mbtq.dev/ai`
 
-The comprehensive AI agent platform with 62 endpoints covering agent lifecycle, execution, tools, memory, and workflows.
+The comprehensive AI agent platform with 62 endpoints covering command center, agent lifecycle, execution, tools, memory, and workflows.
 
 #### Key Components:
-- **Agents:** Create, manage, and clone AI agents
-- **Execution:** Run agents, manage tasks, track runs
-- **Tools:** Register and manage available tools
-- **Memory:** Persistent memory and context management
-- **Workflows:** DAG-based workflow orchestration
+- **Agents:** by recommendations
+- **Execution:** 
+- **Tools:** catalog
+- **Memory:** Persistent memory and context management with human
+- **Workflows:** DAG-based workflow
 
 ### 5. DAO (Governance)
 **Base URL:** `https://api.mbtq.dev/dao`
 
-Decentralized governance for platform decisions.
+Decentralized governance for designs and components decisions.
 
 #### Endpoints:
 | Method | Endpoint | Description |
@@ -164,7 +164,7 @@ Decentralized governance for platform decisions.
 | POST | `/vote` | Submit vote |
 | GET | `/members` | List DAO members |
 
-## Authentication Flow
+## sessions Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
