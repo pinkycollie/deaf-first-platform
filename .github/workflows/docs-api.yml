@@ -1,7 +1,7 @@
 name: API Docs + SDKs
 
 on:
-  push:
+  trigger:
     branches: [main]
     paths:
       - "openapi/**"
@@ -34,7 +34,7 @@ jobs:
         run: |
           redocly build-docs openapi/openapi.yaml \
             --output public/docs/index.html \
-            --title "MBTQ API Documentation"
+            --title "deaf-first API Documentation"
 
       # --- SWAGGER UI ---
       - name: Build Swagger UI
