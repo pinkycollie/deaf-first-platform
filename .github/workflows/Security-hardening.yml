@@ -1,5 +1,8 @@
 name: Security Hardening
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [ "main", "develop" ]
