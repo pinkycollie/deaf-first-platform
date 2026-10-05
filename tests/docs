@@ -20,7 +20,7 @@ tests/
 ### Install Dependencies
 
 ```bash
-npm install
+npm install g
 ```
 
 ### Run All Tests
