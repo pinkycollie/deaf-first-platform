@@ -116,13 +116,29 @@ def run_tensorflow_inference(model_name, image_data):
         with open(image_path, "wb") as f:
             f.write(base64.b64decode(image_data))
         
-        # Find model path
-        model_path = os.path.abspath(f"./models/{model_name}/{model_name}.h5")
+        # Validate model name and find model path safely
+        safe_model_name = secure_filename(model_name or "")
+        if not safe_model_name or safe_model_name != model_name:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid model name"
+            }), 400
+
+        models_root = os.path.abspath("./models")
+        model_path = os.path.abspath(
+            os.path.join(models_root, safe_model_name, f"{safe_model_name}.h5")
+        )
+
+        if os.path.commonpath([models_root, model_path]) != models_root:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid model path"
+            }), 400
         
         if not os.path.exists(model_path):
             return jsonify({
                 "status": "error", 
-                "message": f"Model {model_name} not found at {model_path}"
+                "message": f"Model {safe_model_name} not found at {model_path}"
             }), 404
         
         # Create inference engine and run prediction
@@ -138,7 +154,7 @@ def run_tensorflow_inference(model_name, image_data):
         # Return prediction
         return jsonify({
             "status": "success",
-            "model": model_name,
+            "model": safe_model_name,
             "prediction": result.get("prediction"),
             "confidence": result.get("confidence"),
             "alternatives": result.get("top3"),
