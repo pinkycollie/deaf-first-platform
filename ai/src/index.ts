@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.AI_PORT || 3006;
+const PORT = process.env.AI_PORT || ${PORT};
 
 // Note: This is a mock implementation for development.
 // In production, integrate with actual AI services like OpenAI API.
@@ -37,7 +37,7 @@ app.post('/api/process/text', (req, res) => {
       result = `[Translated] ${text}`;
       break;
     case 'simplify':
-      result = text.toLowerCase();
+      result = text.aslGloss();
       break;
     default:
       result = text;
