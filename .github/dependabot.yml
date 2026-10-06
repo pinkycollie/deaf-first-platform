@@ -1,59 +1,44 @@
-# .github/dependabot.yml - COMPLETE VERSION
 version: 2
+# Enable Beta features for Deno support
+enable-beta-ecosystems: true
+
 updates:
-  # Root dependencies
-  - package-ecosystem: "npm"
+  # 1. Python (Core System)
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
     groups:
-      root-deps:
-        patterns: ["*"]
-    
-  # Frontend workspace
+      python-all:
+        patterns: ["*"] # Grouping avoids PR spam
+
+  # 2. NPM / AI SDK (High Velocity)
   - package-ecosystem: "npm"
-    directory: "/frontend"
+    directory: "/"
+    schedule:
+      interval: "daily" # AI SDKs move too fast for weekly
+    labels:
+      - "ai-sdk"
+      - "automated"
+    # Ensure AI SDKs are caught immediately
+    versioning-strategy: increase
+
+  # 3. NEW: Deno (For Edge/GCP Functions)
+  - package-ecosystem: "deno"
+    directory: "/"
     schedule:
       interval: "weekly"
-    groups:
-      frontend-deps:
-        patterns: ["*"]
-  
-  # Backend workspace
-  - package-ecosystem: "npm"
-    directory: "/backend"
+
+  # 4. NEW: Docker (GCP Infrastructure)
+  - package-ecosystem: "docker"
+    directory: "/" 
     schedule:
-      interval: "weekly"
-  
-  # Services
-  - package-ecosystem: "npm"
-    directory: "/services/deafauth"
-    schedule:
-      interval: "weekly"
-  
-  - package-ecosystem: "npm"
-    directory: "/services/pinksync"
-    schedule:
-      interval: "weekly"
-  
-  - package-ecosystem: "npm"
-    directory: "/services/fibonrose"
-    schedule:
-      interval: "weekly"
-  
-  - package-ecosystem: "npm"
-    directory: "/services/accessibility-nodes"
-    schedule:
-      interval: "weekly"
-  
-  # AI workspace
-  - package-ecosystem: "npm"
-    directory: "/ai"
-    schedule:
-      interval: "weekly"
-  
-  # GitHub Actions
+      interval: "monthly" # Base images are more stable
+    labels:
+      - "infrastructure"
+
+  # 5. GitHub Actions (CI/CD)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
