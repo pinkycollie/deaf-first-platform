@@ -1,14 +1,32 @@
-name: CI
+- name: Get Google Test
+  # You may pin to the exact commit or the version.
+  # uses: LazyPanda07/get-gtest@00657e721653134150653990992f668980d1a25e
+  uses: LazyPanda07/get-gtest@v1.2
+  with:
+    # Google Test repository path
+    repository-path: # optional, default is gtest
+    # Build configuration of Google Test
+    build-type: # optional, default is Release
+    # Google Test branch name to clone
+    branch-name: # optional, default is v1.17.x
+    # Build result path(include, lib folders) relative to github.workspace
+    install-path: 
+    # Compiler name only for Linux
+    compiler: # optional, default is gcc
+    # Windows specific setting, static or shared CRT build
+    force-shared-crt: # optional, default is ON
 
 on:
   push:
     branches:
+      - master
       - main
       - release-v*
   pull_request:
     branches:
       - main
       - release-v*
+
 
 jobs:
   check:
