@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBTQ — Deaf-First Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+```
+:root {
+  --black: #080808;
+  --off-black: #0e0e0e;
+  --surface: #141414;
+  --surface-2: #1a1a1a;
+  --border: #242424;
+  --border-2: #2e2e2e;
+  --text-dim: #444;
+  --text-mid: #888;
+  --text-main: #c8c8c8;
+  --text-bright: #f0ede8;
+  --accent: #e8ff47;
+  --accent-dim: #b8cc30;
+  --accent-glow: rgba(232,255,71,0.08);
+  --fib: #e8ff47;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--text-main);
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── Custom cursor ── */
+.cursor {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: exclusion;
+}
+.cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(232,255,71,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.25s ease, width 0.3s, height 0.3s;
+}
+
+/* ── Noise overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.5;
+}
+
+/* ── Fibonacci spiral bg ── */
+.fib-bg {
+  position: fixed;
+  top: -20vh; right: -20vw;
+  width: 80vw; height: 80vw;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ── */
+.container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 48px;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Nav ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 24px 0;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, background 0.3s, backdrop-filter 0.3s;
+}
+nav.scrolled {
+  background: rgba(8,8,8,0.85);
+  backdrop-filter: blur(20px);
+  border-color: var(--border);
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: var(--text-bright);
+  text-decoration: none;
+}
+.logo span {
+  color: var(--accent);
+}
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+.nav-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text-bright); }
+.nav-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 5px 12px;
+  text-transform: uppercase;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 10vh;
+  padding-top: 120px;
+  position: relative;
+}
+
+.hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3.5rem, 9vw, 9rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--text-bright);
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.35s forwards;
+}
+.hero-title em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--text-mid);
+}
+.hero-title .accent-word {
+  color: var(--accent);
+  display: inline-block;
+}
+
+.hero-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 48px;
+  align-items: end;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.55s forwards;
+}
+
+.hero-desc {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-mid);
+  max-width: 320px;
+}
+
+.hero-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.stat:last-child { border-bottom: none; padding-bottom: 0; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-bright);
+  letter-spacing: -0.04em;
+}
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--accent);
+  color: var(--black);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  padding: 16px 32px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary:hover { transform: translateY(-2px); }
+
+.btn-ghost {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+.btn-ghost:hover { color: var(--text-bright); }
+.btn-ghost::after { content: '→'; }
+
+/* ── Marquee ── */
+.marquee-section {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+.marquee-track {
+  display: flex;
+  gap: 0;
+  animation: marquee 22s linear infinite;
+  width: max-content;
+}
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.marquee-dot {
+  width: 3px; height: 3px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── Services grid ── */
+.section {
+  padding: 120px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 64px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.section-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.service-card {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+  cursor: none;
+}
+.service-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-glow);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.service-card:hover::before { opacity: 1; }
+.service-card:hover .service-name { color: var(--accent); }
+
+.service-port {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.service-port::before {
+  content: '';
+  width: 16px; height: 1px;
+  background: var(--text-dim);
+}
+.service-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+  transition: color 0.3s;
+}
+.service-desc {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+.service-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.service-tag-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ── Deaf-first manifesto ── */
+.manifesto {
+  padding: 120px 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+}
+.manifesto-inner {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 80px;
+  align-items: start;
+}
+.manifesto-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.manifesto-rules {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.manifesto-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+.manifesto-rule.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.rule-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding-top: 4px;
+  flex-shrink: 0;
+  width: 24px;
+}
+.rule-text {
+  font-family: 'Fraunces', serif;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--text-bright);
+  font-weight: 300;
+}
+.rule-text strong {
+  font-weight: 700;
+  color: var(--accent);
+  font-style: normal;
+}
+
+/* ── Architecture strip ── */
+.arch-strip {
+  padding: 80px 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+}
+.arch-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.arch-node {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  border: 1px solid var(--border);
+  position: relative;
+  background: var(--surface);
+  min-width: 140px;
+}
+.arch-node:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.arch-node-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.01em;
+}
+.arch-node-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-align: center;
+}
+.arch-arrow {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), var(--accent), var(--border));
+  flex-shrink: 0;
+  position: relative;
+}
+.arch-arrow::after {
+  content: '▶';
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6px;
+  color: var(--accent);
+}
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px 0;
+  position: relative;
+  z-index: 10;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-left {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.footer-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+.footer-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--accent); }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--border-2); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .container { padding: 0 24px; }
+  .hero-bottom { grid-template-columns: 1fr; }
+  .hero-cta { align-items: flex-start; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .manifesto-inner { grid-template-columns: 1fr; gap: 40px; }
+  .nav-links { display: none; }
+}
+@media (max-width: 600px) {
+  .services-grid { grid-template-columns: 1fr; }
+}
+```
+
+  </style>
+</head>
+<body>
+
+  <!-- Cursor -->
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- Fibonacci spiral SVG background -->
+
+  <svg class="fib-bg" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M400 400 Q400 152 648 152 Q896 152 896 400 Q896 648 648 648 Q400 648 400 400" stroke="#e8ff47" stroke-width="1" fill="none"/>
+    <path d="M400 400 Q276 400 276 276 Q276 152 400 152" stroke="#e8ff47" stroke-width="1" fill="none"/>
+    <path d="M400 400 Q338 400 338 338 Q338 276 400 276" stroke="#e8ff47" stroke-width="1" fill="none"/>
+    <path d="M400 400 Q369 400 369 369 Q369 338 400 338" stroke="#e8ff47" stroke-width="1" fill="none"/>
+    <rect x="276" y="152" width="248" height="248" stroke="#e8ff47" stroke-width="0.5" opacity="0.5"/>
+    <rect x="276" y="276" width="124" height="124" stroke="#e8ff47" stroke-width="0.5" opacity="0.5"/>
+    <rect x="338" y="276" width="62" height="62" stroke="#e8ff47" stroke-width="0.5" opacity="0.4"/>
+    <rect x="338" y="338" width="62" height="62" stroke="#e8ff47" stroke-width="0.5" opacity="0.4"/>
+    <circle cx="648" cy="400" r="2" fill="#e8ff47" opacity="0.6"/>
+    <circle cx="400" cy="152" r="2" fill="#e8ff47" opacity="0.6"/>
+    <circle cx="276" cy="276" r="2" fill="#e8ff47" opacity="0.6"/>
+  </svg>
+
+  <!-- Nav -->
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="/" class="logo">MBTQ<span>.</span>dev</a>
+        <ul class="nav-links">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#platform">Platform</a></li>
+          <li><a href="#manifesto">Principles</a></li>
+          <li><a href="https://360magicians.com">Magicians</a></li>
+        </ul>
+        <span class="nav-badge">Deaf-First</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+
+  <section class="hero">
+    <div class="container">
+      <p class="hero-eyebrow">Platform Infrastructure · Visual-First · No Audio Gates</p>
+      <h1 class="hero-title">
+        Built for<br/>
+        <em>those who</em><br/>
+        <span class="accent-word">see</span> everything
+      </h1>
+      <div class="hero-bottom">
+        <p class="hero-desc">
+          A multi-service platform ecosystem centered on Deaf and hard-of-hearing users.
+          Every layer — auth, trust, sync, accessibility — designed visual-first from the ground up.
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num">5</span>
+            <span class="stat-label">Core auth-sync-trust nodes</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">2s</span>
+            <span class="stat-label">Max time to understand system state</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">0</span>
+            <span class="stat-label">Audio gates in the platform</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <a href="https://360magicians.com" class="btn-primary">
+            Enter Platform
+            <span>→</span>
+          </a>
+          <a href="#services" class="btn-ghost">View services</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marquee -->
+
+  <div class="marquee-section">
+    <div class="marquee-track" id="marquee">
+      <div class="marquee-item"><span class="marquee-dot"></span>DeafAUTH</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PinkSync</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Fibonrose Trust Engine</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>a11y Node</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PinkFlow</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>360 Magicians</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>DAO Governance</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PASETO v4</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>VR4Deaf</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Cloudflare Edge</div>
+      <!-- duplicate for seamless loop -->
+      <div class="marquee-item"><span class="marquee-dot"></span>DeafAUTH</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PinkSync</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Fibonrose Trust Engine</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>a11y Node</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PinkFlow</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>360 Magicians</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>DAO Governance</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PASETO v4</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>VR4Deaf</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Cloudflare Edge</div>
+    </div>
+  </div>
+
+  <!-- Services -->
+
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-label">Core Infrastructure</div>
+          <h2 class="section-title">Services</h2>
+        </div>
+        <span class="section-count">:3002 → :3008</span>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-port">:3002</div>
+          <div class="service-name">DeafAUTH</div>
+          <p class="service-desc">Identity and authentication layer. PASETO v4 tokens. Visual-first login flows. No audio verification.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>auth.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3003</div>
+          <div class="service-name">PinkSync</div>
+          <p class="service-desc">Real-time sync and HotChannel audit interception. WebSocket-first. All events pass through governance gate.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>pinksync.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3004</div>
+          <div class="service-name">Fibonrose</div>
+          <p class="service-desc">Trust scoring for all subdomains. Golden-ratio threshold (0.382). Fibonacci decay. On-chain reputation via ERC-1155.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>fibonrose.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3005</div>
+          <div class="service-name">a11y Node</div>
+          <p class="service-desc">Accessibility compliance layer. Caption-first enforcement, ASL overlay priority, 2-second visual state rule.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>a11y.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3006</div>
+          <div class="service-name">AI / Magicians</div>
+          <p class="service-desc">ARCHITECT, ORACLE, STRATEGIST, CRAFTSMAN agents. Ollama-backed, privacy-first. PinkyAI as root context provider.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>magicians.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3007</div>
+          <div class="service-name">DAO</div>
+          <p class="service-desc">Governance gate for all PinkFlow data flows. FIBR token (ERC-20). Tier-based distribution from root to clients.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>dao.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3008</div>
+          <div class="service-name">PinkFlow</div>
+          <p class="service-desc">Accessibility nodes synchronized. The a11y sync layer binding all five core nodes into a coherent mesh.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>pinkflow.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">:3000</div>
+          <div class="service-name">Gateway</div>
+          <p class="service-desc">Single narrow entry point. Five-stage pipeline: auth → trust score → normalize → route → audit. All traffic here first.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>api.mbtq.dev</div>
+        </div>
+        <div class="service-card">
+          <div class="service-port">dynamic</div>
+          <div class="service-name">360 Magicians</div>
+          <p class="service-desc">Four personas, six lifecycle stages. Idea → Proposal → Build → Grow → Managed → Sunset. Lifetime support for Deaf/HoH.</p>
+          <div class="service-tag"><span class="service-tag-dot"></span>360magicians.com</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture strip -->
+
+  <section class="arch-strip" id="platform">
+    <div class="container">
+      <div class="section-header" style="margin-bottom:40px">
+        <div>
+          <div class="section-label">Traffic Flow</div>
+          <h2 class="section-title" style="font-size:2rem">Every request, one path</h2>
+        </div>
+      </div>
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="arch-node-label">Browser</div>
+          <div class="arch-node-sub">HTTPS only</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">Cloudflare</div>
+          <div class="arch-node-sub">WAF · TLS 1.3</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">Caddy</div>
+          <div class="arch-node-sub">Subdomain route</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">@mbtq/gateway</div>
+          <div class="arch-node-sub">Auth → Trust → Route</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">DeafAUTH</div>
+          <div class="arch-node-sub">PASETO v4</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">Fibonrose</div>
+          <div class="arch-node-sub">Trust ≥ 0.382</div>
+        </div>
+        <div class="arch-arrow"></div>
+        <div class="arch-node">
+          <div class="arch-node-label">Service</div>
+          <div class="arch-node-sub">localhost:PORT</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manifesto -->
+
+  <section class="manifesto" id="manifesto">
+    <div class="container">
+      <div class="manifesto-inner">
+        <div>
+          <div class="manifesto-label">Deaf-First Principles</div>
+          <h2 class="section-title" style="font-size:2.5rem; line-height:1.1">How we<br/><em>build</em></h2>
+        </div>
+        <ul class="manifesto-rules" id="manifestoList">
+          <li class="manifesto-rule">
+            <span class="rule-num">01</span>
+            <span class="rule-text"><strong>Visual-first UI</strong> — every system state communicable within 2 seconds of first render, without sound.</span>
+          </li>
+          <li class="manifesto-rule">
+            <span class="rule-num">02</span>
+            <span class="rule-text"><strong>Caption-first video</strong> — captions are not an option. They are the default track, always on.</span>
+          </li>
+          <li class="manifesto-rule">
+            <span class="rule-num">03</span>
+            <span class="rule-text"><strong>ASL priority overlays</strong> — sign language is a first-class UI element, not an accessibility afterthought.</span>
+          </li>
+          <li class="manifesto-rule">
+            <span class="rule-num">04</span>
+            <span class="rule-text"><strong>No audio gates</strong> — zero features locked behind audio interaction. Phone verification, audio CAPTCHA — banned.</span>
+          </li>
+          <li class="manifesto-rule">
+            <span class="rule-num">05</span>
+            <span class="rule-text"><strong>Trust is structural</strong> — Fibonrose trust scoring is enforced at protocol level, not bolted on as a policy.</span>
+          </li>
+          <li class="manifesto-rule">
+            <span class="rule-num">06</span>
+            <span class="rule-text"><strong>Lifetime support</strong> — Sunset stage includes permanent accommodation registration that never expires.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          MBTQ · mbtq.dev<br/>
+          Deaf-First Platform Ecosystem<br/>
+          © 2025 All rights reserved
+        </div>
+        <ul class="footer-links">
+          <li><a href="https://360magicians.com">Magicians</a></li>
+          <li><a href="https://pinksync.io">PinkSync</a></li>
+          <li><a href="https://vr4deaf.org">VR4Deaf</a></li>
+          <li><a href="https://github.com/pinkycollie/DEAF-FIRST-PLATFORM">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animateCursor() {
+      cursor.style.left = mx + 'px';
+      cursor.style.top = my + 'px';
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+    document.querySelectorAll('a, button, .service-card').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.style.width = '16px';
+        cursor.style.height = '16px';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.style.width = '8px';
+        cursor.style.height = '8px';
+      });
+    });
+
+    // Nav scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Manifesto scroll reveal
+    const rules = document.querySelectorAll('.manifesto-rule');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.15 });
+    rules.forEach(r => observer.observe(r));
+  </script>
+
+</body>
+</html>

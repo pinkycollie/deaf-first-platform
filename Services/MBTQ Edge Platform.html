@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTQ Edge — Open Edge Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --edge-black: #050508;
+    --edge-deep: #0a0a12;
+    --edge-surface: #0f0f1c;
+    --edge-raised: #141428;
+    --edge-border: #1e1e38;
+    --edge-muted: #2a2a4a;
+
+    --intel-blue: #0071c5;
+    --intel-glow: rgba(0, 113, 197, 0.15);
+    --pink-core: #ff3e8a;
+    --pink-glow: rgba(255, 62, 138, 0.12);
+    --cyan-edge: #00e5d4;
+    --cyan-glow: rgba(0, 229, 212, 0.1);
+    --gold-node: #f5c542;
+    --gold-glow: rgba(245, 197, 66, 0.1);
+    --green-live: #00e676;
+    --amber-warn: #ffa000;
+    --red-alert: #ff1744;
+
+    --text-bright: #f0f0ff;
+    --text-mid: #9090b0;
+    --text-dim: #505070;
+
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--edge-black);
+    color: var(--text-bright);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* NOISE TEXTURE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(5, 5, 8, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--edge-border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-hex {
+    width: 32px;
+    height: 32px;
+    position: relative;
+  }
+
+  .logo-hex svg {
+    width: 100%;
+    height: 100%;
+    animation: hexSpin 8s linear infinite;
+  }
+
+  @keyframes hexSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-mbtq { color: var(--pink-core); }
+  .logo-edge { color: var(--cyan-edge); }
+
+  .header-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--intel-glow);
+    border: 1px solid rgba(0, 113, 197, 0.3);
+    color: #4da3e8;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .status-cluster {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-mid);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .dot-live { background: var(--green-live); box-shadow: 0 0 6px var(--green-live); animation: pulse 2s infinite; }
+  .dot-warn { background: var(--amber-warn); }
+  .dot-intel { background: var(--intel-blue); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .clock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    height: calc(100vh - 60px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--edge-deep);
+    border-right: 1px solid var(--edge-border);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--edge-muted); border-radius: 2px; }
+
+  .nav-group {
+    margin-bottom: 24px;
+  }
+
+  .nav-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 20px 8px;
+    border-bottom: 1px solid var(--edge-border);
+    margin-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-mid);
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .nav-item:hover {
+    color: var(--text-bright);
+    background: var(--edge-surface);
+  }
+
+  .nav-item.active {
+    color: var(--text-bright);
+    background: rgba(255, 62, 138, 0.06);
+    border-left-color: var(--pink-core);
+  }
+
+  .nav-item .nav-icon {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .badge-live { background: rgba(0, 230, 118, 0.15); color: var(--green-live); }
+  .badge-intel { background: rgba(0, 113, 197, 0.15); color: #4da3e8; }
+  .badge-new { background: rgba(255, 62, 138, 0.15); color: var(--pink-core); }
+
+  /* MAIN */
+  .main {
+    overflow-y: auto;
+    background: var(--edge-black);
+  }
+
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: var(--edge-muted); border-radius: 2px; }
+
+  /* PANELS */
+  .panel { display: none; padding: 32px; }
+  .panel.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+
+  .page-sub {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  .page-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* INTEL MAPPING BANNER */
+  .intel-banner {
+    background: linear-gradient(135deg, rgba(0,113,197,0.08) 0%, rgba(0,229,212,0.05) 100%);
+    border: 1px solid rgba(0, 113, 197, 0.2);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .intel-logo {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: #4da3e8;
+    border: 1px solid rgba(0,113,197,0.4);
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .intel-banner-text {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  .intel-banner-text strong {
+    color: #4da3e8;
+  }
+
+  /* 7 COMPONENTS GRID */
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .component-card {
+    background: var(--edge-surface);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .component-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .component-card:hover {
+    border-color: var(--edge-muted);
+    transform: translateY(-2px);
+  }
+
+  .card-pink::before { background: linear-gradient(90deg, var(--pink-core), transparent); }
+  .card-cyan::before { background: linear-gradient(90deg, var(--cyan-edge), transparent); }
+  .card-intel::before { background: linear-gradient(90deg, #4da3e8, transparent); }
+  .card-gold::before { background: linear-gradient(90deg, var(--gold-node), transparent); }
+  .card-green::before { background: linear-gradient(90deg, var(--green-live), transparent); }
+  .card-purple::before { background: linear-gradient(90deg, #b44fde, transparent); }
+  .card-amber::before { background: linear-gradient(90deg, var(--amber-warn), transparent); }
+
+  .component-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .component-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .component-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .status-mapped { background: rgba(0,230,118,0.1); color: var(--green-live); border: 1px solid rgba(0,230,118,0.2); }
+  .status-building { background: rgba(255,160,0,0.1); color: var(--amber-warn); border: 1px solid rgba(255,160,0,0.2); }
+  .status-planned { background: rgba(80,80,112,0.2); color: var(--text-dim); border: 1px solid var(--edge-border); }
+
+  .component-intel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4da3e8;
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+  }
+
+  .component-title {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .title-pink { color: var(--pink-core); }
+  .title-cyan { color: var(--cyan-edge); }
+  .title-gold { color: var(--gold-node); }
+  .title-intel { color: #4da3e8; }
+  .title-green { color: var(--green-live); }
+  .title-purple { color: #b44fde; }
+  .title-amber { color: var(--amber-warn); }
+
+  .component-desc {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .component-mapping {
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid var(--edge-border);
+  }
+
+  .mapping-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .mapping-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .mapping-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .tag-pink { background: rgba(255,62,138,0.12); color: #ff7aaa; border: 1px solid rgba(255,62,138,0.2); }
+  .tag-cyan { background: rgba(0,229,212,0.08); color: var(--cyan-edge); border: 1px solid rgba(0,229,212,0.2); }
+  .tag-gold { background: rgba(245,197,66,0.08); color: var(--gold-node); border: 1px solid rgba(245,197,66,0.2); }
+  .tag-blue { background: rgba(77,163,232,0.1); color: #4da3e8; border: 1px solid rgba(77,163,232,0.2); }
+  .tag-green { background: rgba(0,230,118,0.08); color: var(--green-live); border: 1px solid rgba(0,230,118,0.2); }
+  .tag-purple { background: rgba(180,79,222,0.08); color: #c97ff0; border: 1px solid rgba(180,79,222,0.2); }
+  .tag-gray { background: rgba(80,80,112,0.2); color: var(--text-mid); border: 1px solid var(--edge-border); }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram {
+    background: var(--edge-surface);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-mid);
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .arch-layer {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--edge-border);
+  }
+
+  .arch-layer:last-child { border-bottom: none; }
+
+  .layer-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-align: right;
+    padding-right: 16px;
+    border-right: 2px solid var(--edge-border);
+  }
+
+  .layer-content {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .layer-node {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    position: relative;
+  }
+
+  .node-arrow {
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* EDGE NODE SECTION */
+  .edge-nodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .edge-node-card {
+    background: var(--edge-surface);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    padding: 18px;
+    transition: all 0.2s;
+  }
+
+  .edge-node-card:hover {
+    border-color: var(--edge-muted);
+  }
+
+  .node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .node-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .node-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--edge-raised);
+    color: var(--text-dim);
+    border: 1px solid var(--edge-border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .node-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .node-metric {
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    padding: 8px;
+  }
+
+  .metric-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+
+  .metric-value.live { color: var(--green-live); }
+  .metric-value.warn { color: var(--amber-warn); }
+  .metric-value.pink { color: var(--pink-core); }
+  .metric-value.cyan { color: var(--cyan-edge); }
+
+  .node-bar {
+    height: 3px;
+    background: var(--edge-border);
+    border-radius: 2px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+
+  .node-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--pink-core), var(--cyan-edge));
+  }
+
+  /* DEPLOYMENT READINESS */
+  .readiness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .readiness-card {
+    background: var(--edge-surface);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .readiness-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .readiness-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .readiness-pct {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .readiness-bar {
+    height: 4px;
+    background: var(--edge-border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .readiness-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .fill-done { background: var(--green-live); }
+  .fill-prog { background: var(--amber-warn); }
+  .fill-plan { background: var(--text-dim); }
+
+  .readiness-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .readiness-item {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-mid);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .readiness-item .chk {
+    font-size: 10px;
+  }
+
+  .chk-yes { color: var(--green-live); }
+  .chk-no { color: var(--text-dim); }
+  .chk-wip { color: var(--amber-warn); }
+
+  /* IMPLEMENTATION GUIDE */
+  .impl-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .impl-step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--edge-border);
+  }
+
+  .impl-step:last-child { border-bottom: none; }
+
+  .step-num-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-line {
+    width: 1px;
+    flex: 1;
+    min-height: 20px;
+    background: var(--edge-border);
+    margin-top: 4px;
+  }
+
+  .step-num-1 { background: rgba(255,62,138,0.15); color: var(--pink-core); border: 1px solid rgba(255,62,138,0.3); }
+  .step-num-2 { background: rgba(0,229,212,0.1); color: var(--cyan-edge); border: 1px solid rgba(0,229,212,0.2); }
+  .step-num-3 { background: rgba(77,163,232,0.1); color: #4da3e8; border: 1px solid rgba(77,163,232,0.2); }
+  .step-num-4 { background: rgba(245,197,66,0.1); color: var(--gold-node); border: 1px solid rgba(245,197,66,0.2); }
+  .step-num-5 { background: rgba(180,79,222,0.1); color: #b44fde; border: 1px solid rgba(180,79,222,0.2); }
+
+  .step-content { padding-top: 4px; }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .step-codes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .code-line {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--edge-black);
+    border: 1px solid var(--edge-border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: var(--cyan-edge);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .code-prompt {
+    color: var(--pink-core);
+    user-select: none;
+  }
+
+  /* SECTION HEADER */
+  .section-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--pink-core);
+    border-radius: 2px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary {
+    background: var(--pink-core);
+    color: white;
+  }
+
+  .btn-primary:hover { background: #ff5ea0; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--edge-border);
+    color: var(--text-mid);
+  }
+
+  .btn-ghost:hover { border-color: var(--edge-muted); color: var(--text-bright); }
+
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
+
+  /* TERMINAL */
+  .terminal {
+    background: var(--edge-black);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    background: var(--edge-raised);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--edge-border);
+  }
+
+  .term-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .term-dot-r { background: #ff5f57; }
+  .term-dot-y { background: #febc2e; }
+  .term-dot-g { background: #28c840; }
+
+  .term-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  .terminal-body {
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.9;
+    max-height: 280px;
+    overflow-y: auto;
+    color: var(--text-mid);
+  }
+
+  .t-line { display: flex; gap: 10px; }
+  .t-time { color: var(--text-dim); min-width: 75px; }
+  .t-svc { min-width: 110px; }
+  .t-ok .t-svc { color: var(--green-live); }
+  .t-warn .t-svc { color: var(--amber-warn); }
+  .t-info .t-svc { color: #4da3e8; }
+  .t-pink .t-svc { color: var(--pink-core); }
+  .t-cyan .t-svc { color: var(--cyan-edge); }
+
+  /* GRID UTILS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+
+  /* STAT CARD */
+  .stat-card {
+    background: var(--edge-surface);
+    border: 1px solid var(--edge-border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-change {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel.active > * {
+    animation: fadeInUp 0.3s ease forwards;
+  }
+
+  .panel.active > *:nth-child(2) { animation-delay: 0.04s; }
+  .panel.active > *:nth-child(3) { animation-delay: 0.08s; }
+  .panel.active > *:nth-child(4) { animation-delay: 0.12s; }
+  .panel.active > *:nth-child(5) { animation-delay: 0.16s; }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--edge-raised);
+    border: 1px solid rgba(255,62,138,0.3);
+    border-radius: 6px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--text-bright);
+    display: none;
+    z-index: 9000;
+    font-family: var(--font-mono);
+    animation: fadeInUp 0.3s ease;
+    max-width: 320px;
+  }
+
+  /* SCROLLBAR GLOBAL */
+  * { scrollbar-width: thin; scrollbar-color: var(--edge-muted) transparent; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="logo-mark">
+      <div class="logo-hex">
+        <svg viewBox="0 0 32 32" fill="none">
+          <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="none" stroke="#ff3e8a" stroke-width="1.5" opacity="0.6"/>
+          <polygon points="16,7 24,11.5 24,20.5 16,25 8,20.5 8,11.5" fill="rgba(255,62,138,0.1)" stroke="#00e5d4" stroke-width="1"/>
+          <circle cx="16" cy="16" r="3" fill="#ff3e8a"/>
+        </svg>
+      </div>
+      <span class="logo-text"><span class="logo-mbtq">MBTQ</span> <span class="logo-edge">EDGE</span></span>
+    </div>
+    <div class="header-badge">Intel Open Edge Platform</div>
+  </div>
+  <div class="header-right">
+    <div class="status-cluster">
+      <div class="status-pill"><div class="dot dot-live"></div>50+ Cloud Run</div>
+      <div class="status-pill"><div class="dot dot-intel"></div>7 Components Mapped</div>
+      <div class="status-pill"><div class="dot dot-warn"></div>3 Deploying</div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-group">
+      <div class="nav-label">Platform</div>
+      <div class="nav-item active" onclick="show('overview')">
+        <span class="nav-icon">⬡</span> Edge Overview
+      </div>
+      <div class="nav-item" onclick="show('components')">
+        <span class="nav-icon">◈</span> 7 Components
+        <span class="nav-badge badge-intel">INTEL</span>
+      </div>
+      <div class="nav-item" onclick="show('nodes')">
+        <span class="nav-icon">○</span> Edge Nodes
+        <span class="nav-badge badge-live">LIVE</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">MBTQ Services</div>
+      <div class="nav-item" onclick="show('agents')">
+        <span class="nav-icon">◎</span> Node Agents
+      </div>
+      <div class="nav-item" onclick="show('infra')">
+        <span class="nav-icon">▣</span> Infra Manager
+      </div>
+      <div class="nav-item" onclick="show('orchestrator')">
+        <span class="nav-icon">◈</span> Orchestration
+      </div>
+      <div class="nav-item" onclick="show('observability')">
+        <span class="nav-icon">◐</span> Observability
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Deploy</div>
+      <div class="nav-item" onclick="show('implement')">
+        <span class="nav-icon">▷</span> Implementation
+        <span class="nav-badge badge-new">NEW</span>
+      </div>
+      <div class="nav-item" onclick="show('readiness')">
+        <span class="nav-icon">◉</span> Readiness
+      </div>
+      <div class="nav-item" onclick="show('terminal')">
+        <span class="nav-icon">▶</span> Live Logs
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="panel-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Edge Platform <span style="color:var(--pink-core)">Overview</span></div>
+          <div class="page-sub">Intel Open Edge Platform → MBTQ Universe mapping</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm">Export Map</button>
+          <button class="btn btn-primary btn-sm" onclick="show('implement')">Deploy →</button>
+        </div>
+      </div>
+
+      <div class="intel-banner">
+        <div class="intel-logo">INTEL OEP</div>
+        <div class="intel-banner-text">
+          <strong>Open Edge Platform</strong> brings cloud-native deployment, orchestration, and management to edge environments at scale.
+          MBTQ maps all <strong>7 core components</strong> onto its existing deaf-first infrastructure — PinkSync nodes, DeafAUTH identity layer, Fibonrose trust engine, and 360Magicians AI agents.
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-label">Edge Nodes</div>
+          <div class="stat-value" style="color:var(--cyan-edge)">7</div>
+          <div class="stat-change">Mapped to Intel spec</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Cloud Run Services</div>
+          <div class="stat-value" style="color:var(--green-live)">50+</div>
+          <div class="stat-change">Production live</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Intel Components</div>
+          <div class="stat-value" style="color:#4da3e8">7/7</div>
+          <div class="stat-change">All mapped to MBTQ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">DB Tables</div>
+          <div class="stat-value" style="color:var(--pink-core)">150+</div>
+          <div class="stat-change">Supabase production</div>
+        </div>
+      </div>
+
+      <!-- Architecture -->
+      <div class="section-hdr">
+        <div class="section-title">MBTQ ↔ Intel Edge Architecture</div>
+      </div>
+      <div class="arch-diagram">
+        <div class="arch-title">// layer stack — top to bottom</div>
+        <div class="arch-layers">
+          <div class="arch-layer">
+            <div class="layer-label">UI LAYER</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(255,62,138,0.1);color:#ff7aaa;border:1px solid rgba(255,62,138,0.2)">PinkSync Dashboard</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,229,212,0.08);color:var(--cyan-edge);border:1px solid rgba(0,229,212,0.2)">DeafAUTH Portal</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(77,163,232,0.1);color:#4da3e8;border:1px solid rgba(77,163,232,0.2)">360Magicians UI</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">PLATFORM SVCS</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(180,79,222,0.1);color:#c97ff0;border:1px solid rgba(180,79,222,0.2)">DeafAUTH IAM</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(180,79,222,0.1);color:#c97ff0;border:1px solid rgba(180,79,222,0.2)">Supabase RLS</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(180,79,222,0.1);color:#c97ff0;border:1px solid rgba(180,79,222,0.2)">Cloudflare DNS</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">APP ORCH</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(245,197,66,0.08);color:var(--gold-node);border:1px solid rgba(245,197,66,0.2)">360Magicians</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(245,197,66,0.08);color:var(--gold-node);border:1px solid rgba(245,197,66,0.2)">IntakeAgent</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(245,197,66,0.08);color:var(--gold-node);border:1px solid rgba(245,197,66,0.2)">FundingAgent</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">CLUSTER ORCH</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(0,230,118,0.08);color:var(--green-live);border:1px solid rgba(0,230,118,0.2)">Cloud Run K8s</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,230,118,0.08);color:var(--green-live);border:1px solid rgba(0,230,118,0.2)">Deno Deploy</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,230,118,0.08);color:var(--green-live);border:1px solid rgba(0,230,118,0.2)">CAPI Clusters</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">INFRA MGR</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(0,113,197,0.1);color:#4da3e8;border:1px solid rgba(0,113,197,0.2)">Fibonrose Trust</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,113,197,0.1);color:#4da3e8;border:1px solid rgba(0,113,197,0.2)">Xano 24 Groups</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,113,197,0.1);color:#4da3e8;border:1px solid rgba(0,113,197,0.2)">Lifecycle DB</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">NODE AGENTS</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(255,62,138,0.08);color:#ff7aaa;border:1px solid rgba(255,62,138,0.2)">PinkSync Node</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(255,62,138,0.08);color:#ff7aaa;border:1px solid rgba(255,62,138,0.2)">Vodafone IoT SIM</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(255,62,138,0.08);color:#ff7aaa;border:1px solid rgba(255,62,138,0.2)">Humax STB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick component cards -->
+      <div class="section-hdr">
+        <div class="section-title">7 Intel Components → MBTQ Mapping</div>
+        <button class="btn btn-ghost btn-sm" onclick="show('components')">View All →</button>
+      </div>
+      <div class="components-grid">
+        <div class="component-card card-pink" onclick="show('agents')">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 01</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Edge Node Agents</div>
+          <div class="component-title title-pink">PinkSync Nodes</div>
+          <div class="component-desc">OS-level agents on edge devices — mapped to PinkSync IoT nodes, Vodafone SIMs, van units, and Humax set-top boxes.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-pink">PinkSync Node</span>
+              <span class="mapping-tag tag-gray">Vodafone SIM</span>
+              <span class="mapping-tag tag-gray">Van #001</span>
+              <span class="mapping-tag tag-pink">Humax STB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-intel" onclick="show('infra')">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 02</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Edge Infrastructure Manager</div>
+          <div class="component-title title-intel">Fibonrose + Xano</div>
+          <div class="component-desc">Policy-based lifecycle management of fleet — mapped to Fibonrose trust scoring and Xano's 24 API groups with 150+ tables.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-blue">Fibonrose Trust</span>
+              <span class="mapping-tag tag-blue">Xano 24 Groups</span>
+              <span class="mapping-tag tag-blue">Lifecycle DB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-green" onclick="show('orchestrator')">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 03</div>
+            <div class="component-status status-building">BUILDING</div>
+          </div>
+          <div class="component-intel">Edge Cluster Orchestrator</div>
+          <div class="component-title title-green">Cloud Run + Deno</div>
+          <div class="component-desc">CAPI-based multi-cluster Kubernetes orchestration — mapped to 50+ Cloud Run services and Deno Deploy edge runtime.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-green">50+ Cloud Run</span>
+              <span class="mapping-tag tag-green">Deno Deploy</span>
+              <span class="mapping-tag tag-gray">CAPI Standard</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-gold" onclick="show('orchestrator')">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 04</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Edge Application Orchestrator</div>
+          <div class="component-title title-gold">360Magicians</div>
+          <div class="component-desc">Package, deploy, monitor cloud-native apps across distributed edges — mapped to 360Magicians AI agent orchestration and LifecycleBlueprint.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-gold">IntakeAgent</span>
+              <span class="mapping-tag tag-gold">ValidatorAgent</span>
+              <span class="mapping-tag tag-gold">BuilderAgent</span>
+              <span class="mapping-tag tag-gold">FundingAgent</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-cyan">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 05</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">User Interface</div>
+          <div class="component-title title-cyan">MBTQ Control Center</div>
+          <div class="component-desc">Web UI for edge orchestrator — mapped to existing MBTQ Control Center HTML dashboard with visual-first, deaf-accessible design.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-cyan">Control Center</span>
+              <span class="mapping-tag tag-cyan">PinkSync UI</span>
+              <span class="mapping-tag tag-cyan">ASL-First</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-purple" onclick="show('observability')">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 06</div>
+            <div class="component-status status-building">BUILDING</div>
+          </div>
+          <div class="component-intel">Observability Stack</div>
+          <div class="component-title title-purple">Supabase + Google AI</div>
+          <div class="component-desc">Logging, alerts, SRE data — mapped to Supabase real-time, Google AI embeddings, and Fibonrose event audit trail.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-purple">Supabase Realtime</span>
+              <span class="mapping-tag tag-purple">Google AI</span>
+              <span class="mapping-tag tag-purple">Event Logs</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-amber">
+          <div class="component-header">
+            <div class="component-num">COMPONENT 07</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Platform Services</div>
+          <div class="component-title title-amber">DeafAUTH + Cloudflare</div>
+          <div class="component-desc">IAM, multitenancy, ingress, secrets, certificates — mapped to DeafAUTH identity layer, Cloudflare DNS routing, and Supabase RLS policies.</div>
+          <div class="component-mapping">
+            <div class="mapping-label">MBTQ Assets</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-gold">DeafAUTH IAM</span>
+              <span class="mapping-tag tag-gray">Cloudflare</span>
+              <span class="mapping-tag tag-gray">Supabase RLS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPONENTS PANEL -->
+    <div class="panel" id="panel-components">
+      <div class="page-header">
+        <div>
+          <div class="page-title">7 <span style="color:var(--cyan-edge)">Components</span></div>
+          <div class="page-sub">Intel OEP spec → complete MBTQ mapping</div>
+        </div>
+      </div>
+
+      <div class="intel-banner">
+        <div class="intel-logo">INTEL SPEC</div>
+        <div class="intel-banner-text">
+          Intel's Open Edge Platform defines <strong>7 mandatory components</strong> for production edge deployment.
+          Every MBTQ service maps 1:1. Your existing infrastructure already covers 5/7 components in production.
+        </div>
+      </div>
+
+      <div class="components-grid">
+
+        <div class="component-card card-pink">
+          <div class="component-header">
+            <div class="component-num">01 / EDGE NODE AGENTS</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Intel: OS-level agents on edge nodes with consistent interface</div>
+          <div class="component-title title-pink">PinkSync Node Agent</div>
+          <div class="component-desc">
+            Each PinkSync node (van, Humax STB, office node) runs an OS-level agent that: reports health to Control Center, executes compliance scans locally, syncs with Deno Deploy, and streams ASL video content. Vodafone IoT SIMs provide connectivity.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Agent Responsibilities</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-pink">Health Heartbeat</span>
+              <span class="mapping-tag tag-pink">Local Scan Exec</span>
+              <span class="mapping-tag tag-gray">Sync Protocol</span>
+              <span class="mapping-tag tag-pink">ASL Stream</span>
+              <span class="mapping-tag tag-gray">IoT SIM Mgmt</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-intel">
+          <div class="component-header">
+            <div class="component-num">02 / EDGE INFRASTRUCTURE MGR</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Intel: Policy-based lifecycle management of fleet at scale</div>
+          <div class="component-title title-intel">Fibonrose + Xano Fleet Manager</div>
+          <div class="component-desc">
+            Fibonrose's trust engine acts as the policy engine — only trusted nodes (score ≥60) can execute sensitive compliance tasks. Xano's 24 API groups + 150 tables handle onboarding, provisioning, inventory, and upgrade management across the MBTQ fleet.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Fleet Management Stack</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-blue">Fibonrose Policy</span>
+              <span class="mapping-tag tag-blue">Xano Inventory</span>
+              <span class="mapping-tag tag-blue">Trust Gating</span>
+              <span class="mapping-tag tag-blue">Upgrade Mgmt</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-green">
+          <div class="component-header">
+            <div class="component-num">03 / EDGE CLUSTER ORCHESTRATOR</div>
+            <div class="component-status status-building">BUILDING</div>
+          </div>
+          <div class="component-intel">Intel: CAPI-based multi-cluster Kubernetes at distributed edges</div>
+          <div class="component-title title-green">Cloud Run Cluster Manager</div>
+          <div class="component-desc">
+            50+ Cloud Run services need formal CAPI-compliant cluster management. Deno Deploy provides the edge runtime layer. Action needed: implement Cluster API controllers to manage Cloud Run clusters programmatically across Dallas, Austin, and remote nodes.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Cluster Components</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-green">Cloud Run 50+</span>
+              <span class="mapping-tag tag-green">Deno Edge RT</span>
+              <span class="mapping-tag tag-gray">CAPI Controllers</span>
+              <span class="mapping-tag tag-gray">Multi-cluster</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-gold">
+          <div class="component-header">
+            <div class="component-num">04 / EDGE APPLICATION ORCHESTRATOR</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Intel: Package, deploy, monitor cloud-native apps at scale</div>
+          <div class="component-title title-gold">360Magicians AI Orchestrator</div>
+          <div class="component-desc">
+            360Magicians IS the application orchestrator. Each AI agent (Intake, Validator, Builder, Funding, Compliance) maps to a Helm chart equivalent — packaged, deployable, monitored. The LifecycleBlueprint is the deployment manifest for every entrepreneur's journey.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Agent Applications</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-gold">IntakeAgent</span>
+              <span class="mapping-tag tag-gold">ValidatorAgent</span>
+              <span class="mapping-tag tag-gold">BuilderAgent</span>
+              <span class="mapping-tag tag-gold">FundingAgent</span>
+              <span class="mapping-tag tag-gold">ComplianceAgent</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-cyan">
+          <div class="component-header">
+            <div class="component-num">05 / USER INTERFACE</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Intel: Intuitive web UI for managing most platform features</div>
+          <div class="component-title title-cyan">MBTQ Control Center</div>
+          <div class="component-desc">
+            The existing MBTQ Control Center HTML dashboard covers this component. Deaf-first design principle means visual management without requiring audio. Extend with PinkSync edge node map, fleet status visualization, and real-time agent execution monitor.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">UI Capabilities</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-cyan">Fleet Map</span>
+              <span class="mapping-tag tag-cyan">Agent Monitor</span>
+              <span class="mapping-tag tag-cyan">Visual Alerts</span>
+              <span class="mapping-tag tag-cyan">ASL First</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-purple">
+          <div class="component-header">
+            <div class="component-num">06 / OBSERVABILITY STACK</div>
+            <div class="component-status status-building">BUILDING</div>
+          </div>
+          <div class="component-intel">Intel: Logging, reporting, alerts, SRE data from all components</div>
+          <div class="component-title title-purple">Supabase Realtime + ChromaDB</div>
+          <div class="component-desc">
+            Fibonrose already logs all trust events as an audit trail. Supabase Realtime handles live dashboard updates. Gap: need centralized log aggregation across all 50+ services. Implement: structured logging → Supabase → ChromaDB vector search for anomaly detection.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Observability Stack</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-purple">Supabase Realtime</span>
+              <span class="mapping-tag tag-purple">ChromaDB Vectors</span>
+              <span class="mapping-tag tag-purple">Fibonrose Audit</span>
+              <span class="mapping-tag tag-gray">Log Aggregation</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-card card-amber">
+          <div class="component-header">
+            <div class="component-num">07 / PLATFORM SERVICES</div>
+            <div class="component-status status-mapped">MAPPED</div>
+          </div>
+          <div class="component-intel">Intel: IAM, multitenancy, ingress, secrets, certificate management</div>
+          <div class="component-title title-amber">DeafAUTH + Cloudflare + Supabase RLS</div>
+          <div class="component-desc">
+            DeafAUTH owns IAM and multitenancy (300+ sign language profiles, verification levels). Cloudflare handles global ingress and DNS routing. Supabase RLS enforces row-level multitenancy. Together these form a complete platform services layer.
+          </div>
+          <div class="component-mapping">
+            <div class="mapping-label">Platform Services Stack</div>
+            <div class="mapping-items">
+              <span class="mapping-tag tag-gold">DeafAUTH IAM</span>
+              <span class="mapping-tag tag-gold">Multi-tenant RLS</span>
+              <span class="mapping-tag tag-gray">Cloudflare Ingress</span>
+              <span class="mapping-tag tag-gray">JWT Secrets</span>
+              <span class="mapping-tag tag-gray">TLS Certs</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EDGE NODES PANEL -->
+    <div class="panel" id="panel-nodes">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Edge <span style="color:var(--cyan-edge)">Nodes</span></div>
+          <div class="page-sub">Physical + virtual PinkSync nodes across MBTQ fleet</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm">+ Register Node</button>
+        </div>
+      </div>
+
+      <div class="section-hdr">
+        <div class="section-title">Active Fleet</div>
+      </div>
+      <div class="edge-nodes">
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--green-live)">🖥️ Dallas HQ Node</div>
+            <div class="node-type">Primary</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">Deno Deploy · Intel OEP Agent v1.0</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value live">ONLINE</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Uptime</div>
+              <div class="metric-value cyan">99.9%</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Scans Run</div>
+              <div class="metric-value">2,847</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Last Sync</div>
+              <div class="metric-value" style="font-size:12px">just now</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:92%"></div></div>
+        </div>
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--green-live)">📡 Austin Branch Node</div>
+            <div class="node-type">Secondary</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">Vodafone IoT · SIM Active</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value live">ONLINE</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Signal</div>
+              <div class="metric-value cyan">-72dBm</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Data Used</div>
+              <div class="metric-value">1.2GB</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Last Sync</div>
+              <div class="metric-value" style="font-size:12px">2m ago</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:78%"></div></div>
+        </div>
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--amber-warn)">🚐 Van Unit #001</div>
+            <div class="node-type">Mobile</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">Vodafone IoT · GPS Active · VR Loaded</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value warn">IN TRANSIT</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">GPS Lock</div>
+              <div class="metric-value cyan">YES</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">VR Gear</div>
+              <div class="metric-value live">LOADED</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Last Ping</div>
+              <div class="metric-value" style="font-size:12px">4m ago</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:55%"></div></div>
+        </div>
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--green-live)">📺 Humax STB #001</div>
+            <div class="node-type">STB</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">Dallas Community Center · ASL Stream</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value live">STREAMING</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Viewers</div>
+              <div class="metric-value pink">12</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Stream Health</div>
+              <div class="metric-value live">98%</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Codec</div>
+              <div class="metric-value" style="font-size:12px">H.265</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:98%"></div></div>
+        </div>
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--text-dim)">📺 Humax STB #002</div>
+            <div class="node-type">STB</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">Austin Library · Standby</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">Status</div>
+              <div class="metric-value" style="color:var(--text-dim)">STANDBY</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Ready</div>
+              <div class="metric-value live">YES</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Viewers</div>
+              <div class="metric-value">0</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Last Boot</div>
+              <div class="metric-value" style="font-size:12px">6h ago</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:20%"></div></div>
+        </div>
+
+        <div class="edge-node-card">
+          <div class="node-header">
+            <div class="node-name" style="color:var(--green-live)">⚡ Nvidia A100 Compute</div>
+            <div class="node-type">GPU Cloud</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px">ASL Recognition · Cloud Inference</div>
+          <div class="node-metrics">
+            <div class="node-metric">
+              <div class="metric-label">GPU Util</div>
+              <div class="metric-value pink">34%</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Jobs Active</div>
+              <div class="metric-value cyan">2</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Avg Latency</div>
+              <div class="metric-value live">94ms</div>
+            </div>
+            <div class="node-metric">
+              <div class="metric-label">Model</div>
+              <div class="metric-value" style="font-size:11px">ASL-v3</div>
+            </div>
+          </div>
+          <div class="node-bar"><div class="node-bar-fill" style="width:34%"></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- IMPLEMENTATION PANEL -->
+    <div class="panel" id="panel-implement">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Implementation <span style="color:var(--pink-core)">Guide</span></div>
+          <div class="page-sub">Step-by-step Intel OEP deployment for MBTQ edge</div>
+        </div>
+      </div>
+
+      <div class="intel-banner">
+        <div class="intel-logo">ACTION PLAN</div>
+        <div class="intel-banner-text">
+          Based on Intel OEP developer guide: deploy <strong>Edge Node Agents</strong> first, then layer up through Infrastructure Manager → Cluster Orchestrator → Application Orchestrator → Observability. Platform Services (DeafAUTH) already live.
+        </div>
+      </div>
+
+      <div class="section-hdr">
+        <div class="section-title">Deployment Sequence</div>
+      </div>
+
+      <div class="impl-timeline">
+
+        <div class="impl-step">
+          <div class="step-num-wrap">
+            <div class="step-num step-num-1">01</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Deploy PinkSync Node Agent Binary</div>
+            <div class="step-desc">
+              Compile a Deno edge agent that runs on each physical node (van, STB, office). It should report health, accept task payloads from the Control Center, and execute local compliance scans. Deploy via Deno compile to a single binary — runs on Linux, Windows, ARM.
+            </div>
+            <div class="step-codes">
+              <div class="code-line"><span class="code-prompt">$</span> deno compile --allow-net --allow-read --allow-write pinksync_node_agent.ts</div>
+              <div class="code-line"><span class="code-prompt">$</span> ./pinksync_node_agent --node-id=dallas-hq --control-url=https://control.mbtq.io</div>
+              <div class="code-line"><span class="code-prompt">$</span> # Registers node with Control Center via /nodes/register POST</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="impl-step">
+          <div class="step-num-wrap">
+            <div class="step-num step-num-2">02</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Configure Infrastructure Manager (Fibonrose Policy Engine)</div>
+            <div class="step-desc">
+              Create Fibonrose policies that control which nodes can run which tasks. Trust score ≥60 = can run compliance scans. Trust score ≥80 = can handle sensitive VR intake data. Wire Xano API groups to Supabase infrastructure tables for node inventory.
+            </div>
+            <div class="step-codes">
+              <div class="code-line"><span class="code-prompt">SQL</span> INSERT INTO fibonrose.node_policies (min_trust, allowed_tasks) VALUES (60, '{"scan","research"}');</div>
+              <div class="code-line"><span class="code-prompt">SQL</span> INSERT INTO fibonrose.node_policies (min_trust, allowed_tasks) VALUES (80, '{"vr_intake","funding_data"}');</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="impl-step">
+          <div class="step-num-wrap">
+            <div class="step-num step-num-3">03</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Implement CAPI Cluster Orchestrator for Cloud Run</div>
+            <div class="step-desc">
+              Create a lightweight CAPI-compliant controller that manages your 50+ Cloud Run services as a logical cluster. Define ClusterClass manifests for each service group (DeafAUTH, PinkSync, Fibonrose, 360Magicians). Deploy via Google Cloud's CAPI provider.
+            </div>
+            <div class="step-codes">
+              <div class="code-line"><span class="code-prompt">$</span> gcloud container clusters create mbtq-edge-cluster --zone=us-central1-a</div>
+              <div class="code-line"><span class="code-prompt">$</span> clusterctl init --infrastructure gcp</div>
+              <div class="code-line"><span class="code-prompt">$</span> kubectl apply -f mbtq-cluster-class.yaml</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="impl-step">
+          <div class="step-num-wrap">
+            <div class="step-num step-num-4">04</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Package 360Magicians Agents as Helm Charts</div>
+            <div class="step-desc">
+              Convert each agent (Intake, Validator, Builder, Funding, Compliance) into a Helm chart following Intel OEP's Application Orchestrator format. This enables deploy-anywhere portability — push to Cloud Run, local K8s, or any edge cluster with one command.
+            </div>
+            <div class="step-codes">
+              <div class="code-line"><span class="code-prompt">$</span> helm create intake-agent && helm create validator-agent</div>
+              <div class="code-line"><span class="code-prompt">$</span> helm install intake-agent ./intake-agent --set image.tag=v1.0</div>
+              <div class="code-line"><span class="code-prompt">$</span> # Deploy to any cluster: Cloud Run, Dallas node, or van</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="impl-step">
+          <div class="step-num-wrap">
+            <div class="step-num step-num-5">05</div>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Deploy Observability Stack (Supabase + ChromaDB)</div>
+            <div class="step-desc">
+              Pipe all service logs into Supabase via structured log inserts. Use ChromaDB to create a vector index of log entries — enabling semantic search ("show me all failed compliance scans near Dallas"). Add Fibonrose's audit trail as the human-readable layer on top.
+            </div>
+            <div class="step-codes">
+              <div class="code-line"><span class="code-prompt">$</span> # Every service logs to: POST /logs with {service, level, message, node_id, timestamp}</div>
+              <div class="code-line"><span class="code-prompt">$</span> # ChromaDB indexes logs with text-embedding-3-small</div>
+              <div class="code-line"><span class="code-prompt">$</span> # Query: chromadb.query("failed compliance scan Dallas", n_results=10)</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- READINESS PANEL -->
+    <div class="panel" id="panel-readiness">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Deployment <span style="color:var(--gold-node)">Readiness</span></div>
+          <div class="page-sub">Intel OEP component readiness across MBTQ</div>
+        </div>
+      </div>
+
+      <div class="section-hdr">
+        <div class="section-title">Component Readiness Matrix</div>
+      </div>
+      <div class="readiness-grid">
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:#ff7aaa">Node Agents</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--amber-warn)">65%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-prog" style="width:65%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Physical nodes exist</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Vodafone IoT SIMs</div>
+            <div class="readiness-item"><span class="chk chk-wip">~</span> Agent binary needed</div>
+            <div class="readiness-item"><span class="chk chk-no">○</span> Health protocol</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:#4da3e8">Infra Manager</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--green-live)">85%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-done" style="width:85%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Fibonrose trust engine</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Xano 150+ tables</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Policy framework</div>
+            <div class="readiness-item"><span class="chk chk-wip">~</span> Upgrade automation</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:var(--green-live)">Cluster Orch</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--amber-warn)">40%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-prog" style="width:40%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> 50+ Cloud Run live</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Deno Deploy active</div>
+            <div class="readiness-item"><span class="chk chk-no">○</span> CAPI controllers</div>
+            <div class="readiness-item"><span class="chk chk-no">○</span> Multi-cluster mgmt</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:var(--gold-node)">App Orchestrator</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--green-live)">90%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-done" style="width:90%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> 5 agents coded</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> LifecycleBlueprint</div>
+            <div class="readiness-item"><span class="chk chk-wip">~</span> Helm chart packaging</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Artifact versioning</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:var(--cyan-edge)">UI Layer</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--green-live)">95%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-done" style="width:95%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Control Center live</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> All service panels</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> ASL-first design</div>
+            <div class="readiness-item"><span class="chk chk-wip">~</span> Edge node map view</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:#c97ff0">Observability</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--amber-warn)">50%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-prog" style="width:50%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Fibonrose audit log</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Supabase realtime</div>
+            <div class="readiness-item"><span class="chk chk-no">○</span> Centralized logging</div>
+            <div class="readiness-item"><span class="chk chk-no">○</span> ChromaDB log index</div>
+          </div>
+        </div>
+
+        <div class="readiness-card">
+          <div class="readiness-header">
+            <div class="readiness-name" style="color:var(--gold-node)">Platform Svcs</div>
+          </div>
+          <div class="readiness-pct" style="color:var(--green-live)">88%</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-done" style="width:88%"></div></div>
+          <div class="readiness-items">
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> DeafAUTH IAM</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Cloudflare DNS</div>
+            <div class="readiness-item"><span class="chk chk-yes">✓</span> Supabase RLS</div>
+            <div class="readiness-item"><span class="chk chk-wip">~</span> Cert automation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall readiness score -->
+      <div class="arch-diagram" style="margin-top:0">
+        <div class="arch-title">// overall edge readiness score</div>
+        <div style="display:flex;align-items:center;gap:24px;margin-top:8px">
+          <div style="font-size:64px;font-weight:800;color:var(--pink-core);line-height:1;font-family:var(--font-mono)">73%</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:6px">Production-Ready for Intel OEP Certification</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.8">
+              5 of 7 components mapped and active<br>
+              2 components need focused build sprint (Cluster Orch + Observability)<br>
+              Node Agent binary is the single most valuable next action
+            </div>
+          </div>
+        </div>
+        <div class="readiness-bar" style="margin-top:20px;height:6px">
+          <div class="readiness-fill fill-done" style="width:73%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TERMINAL PANEL -->
+    <div class="panel" id="panel-terminal">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Live <span style="color:var(--green-live)">Logs</span></div>
+          <div class="page-sub">Real-time stream from all edge nodes and services</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="clearLogs()">Clear</button>
+          <button class="btn btn-primary btn-sm" id="streamBtn" onclick="toggleStream()">▶ Stream</button>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="term-dot term-dot-r"></div>
+          <div class="term-dot term-dot-y"></div>
+          <div class="term-dot term-dot-g"></div>
+          <div class="term-title">MBTQ Edge Log Stream — Intel OEP Component Monitor</div>
+        </div>
+        <div class="terminal-body" id="log-body">
+          <div class="t-line t-ok">
+            <span class="t-time">00:00:00</span>
+            <span class="t-svc">EDGE-SYSTEM</span>
+            <span>MBTQ Open Edge Platform initialized. All 7 Intel OEP components mapped.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENTS PANEL -->
+    <div class="panel" id="panel-agents">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Node <span style="color:var(--pink-core)">Agents</span></div>
+          <div class="page-sub">Intel OEP Component 01 — OS-level edge agents</div>
+        </div>
+      </div>
+      <div class="intel-banner">
+        <div class="intel-logo">COMPONENT 01</div>
+        <div class="intel-banner-text">
+          Intel spec: <strong>Edge Node Agents</strong> run as OS-level daemons providing a consistent interface between physical hardware and the cloud control plane. For MBTQ, this is the <strong>PinkSync Node Agent</strong> — a compiled Deno binary deployed to each van, STB, and office node.
+        </div>
+      </div>
+      <div class="arch-diagram">
+        <div class="arch-title">// pinksync node agent — required capabilities</div>
+        <div class="arch-layers">
+          <div class="arch-layer">
+            <div class="layer-label">REGISTER</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(255,62,138,0.1);color:#ff7aaa;border:1px solid rgba(255,62,138,0.2)">POST /nodes/register</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,0,0,0.3);color:var(--text-mid);border:1px solid var(--edge-border)">node_id, location, capabilities</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">HEARTBEAT</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(0,229,212,0.08);color:var(--cyan-edge);border:1px solid rgba(0,229,212,0.2)">POST /nodes/heartbeat</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,0,0,0.3);color:var(--text-mid);border:1px solid var(--edge-border)">every 30s · health + metrics</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">EXECUTE</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(245,197,66,0.08);color:var(--gold-node);border:1px solid rgba(245,197,66,0.2)">POST /nodes/execute</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,0,0,0.3);color:var(--text-mid);border:1px solid var(--edge-border)">run_scan | run_research | stream_asl</span>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="layer-label">SYNC</div>
+            <div class="layer-content">
+              <span class="layer-node" style="background:rgba(0,230,118,0.08);color:var(--green-live);border:1px solid rgba(0,230,118,0.2)">WebSocket /nodes/ws</span>
+              <span class="node-arrow">→</span>
+              <span class="layer-node" style="background:rgba(0,0,0,0.3);color:var(--text-mid);border:1px solid var(--edge-border)">bidirectional · low-latency</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFRA PANEL -->
+    <div class="panel" id="panel-infra">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Infra <span style="color:#4da3e8">Manager</span></div>
+          <div class="page-sub">Intel OEP Component 02 — Fleet lifecycle management</div>
+        </div>
+      </div>
+      <div class="intel-banner">
+        <div class="intel-logo">COMPONENT 02</div>
+        <div class="intel-banner-text">
+          Intel spec: <strong>Edge Infrastructure Manager</strong> handles policy-based lifecycle management of distributed edge devices — onboarding, provisioning, inventory, upgrades. For MBTQ: <strong>Fibonrose trust engine</strong> is the policy layer, <strong>Xano</strong> is the inventory + provisioning layer.
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="stat-card">
+          <div class="stat-label">Fibonrose Policy Engine</div>
+          <div class="stat-value" style="color:#4da3e8;font-size:20px;margin-bottom:8px">Trust-Gated Access</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.9">
+            Score ≥ 60 → compliance scans<br>
+            Score ≥ 75 → sensitive data access<br>
+            Score ≥ 90 → admin operations<br>
+            Score &lt; 40 → read-only quarantine
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Xano Fleet Inventory</div>
+          <div class="stat-value" style="color:var(--green-live);font-size:20px;margin-bottom:8px">24 API Groups</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.9">
+            150+ tables covering all node types<br>
+            Onboarding → provisioning → monitor<br>
+            Upgrade versioning + rollback<br>
+            Node-to-cluster assignment
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORCHESTRATOR PANEL -->
+    <div class="panel" id="panel-orchestrator">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Cluster + App <span style="color:var(--gold-node)">Orchestration</span></div>
+          <div class="page-sub">Intel OEP Components 03 + 04 — CAPI clusters + app deployment</div>
+        </div>
+      </div>
+      <div class="intel-banner">
+        <div class="intel-logo">COMPONENTS 03+04</div>
+        <div class="intel-banner-text">
+          <strong>Cluster Orchestrator</strong> (CAPI) manages Kubernetes clusters across distributed edges. <strong>App Orchestrator</strong> deploys and monitors cloud-native apps via Helm charts. MBTQ maps: Cloud Run + Deno = clusters; 360Magicians agents = Helm-packaged applications.
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="stat-card">
+          <div class="stat-label">Cluster Orchestrator Status</div>
+          <div class="readiness-pct" style="color:var(--amber-warn)">40% ready</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-prog" style="width:40%"></div></div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);margin-top:10px;line-height:1.9">
+            ✓ 50+ Cloud Run services live<br>
+            ✓ Deno Deploy edge runtime<br>
+            ○ CAPI controllers needed<br>
+            ○ ClusterClass manifests needed
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">App Orchestrator Status</div>
+          <div class="readiness-pct" style="color:var(--green-live)">90% ready</div>
+          <div class="readiness-bar"><div class="readiness-fill fill-done" style="width:90%"></div></div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);margin-top:10px;line-height:1.9">
+            ✓ 5 agents fully coded<br>
+            ✓ LifecycleBlueprint manifest<br>
+            ✓ Artifact versioning (Supabase)<br>
+            ~ Helm chart packaging needed
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBSERVABILITY PANEL -->
+    <div class="panel" id="panel-observability">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Observability <span style="color:#c97ff0">Stack</span></div>
+          <div class="page-sub">Intel OEP Component 06 — Logging, alerting, SRE data</div>
+        </div>
+      </div>
+      <div class="intel-banner">
+        <div class="intel-logo">COMPONENT 06</div>
+        <div class="intel-banner-text">
+          Intel spec: <strong>Observability</strong> provides visibility into health and performance of all system components — logging, reporting, alerts, SRE metrics. MBTQ maps: <strong>Supabase Realtime</strong> + <strong>Fibonrose audit trail</strong> + <strong>ChromaDB</strong> for semantic log search.
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="stat-card">
+          <div class="stat-label">Log Pipeline</div>
+          <div class="stat-value" style="color:var(--amber-warn);font-size:18px">PARTIAL</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-top:8px;line-height:1.8">
+            Fibonrose trust events ✓<br>
+            Agent run logs ✓<br>
+            Node health logs ○<br>
+            Service error logs ○
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Alerting System</div>
+          <div class="stat-value" style="color:var(--amber-warn);font-size:18px">BUILDING</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-top:8px;line-height:1.8">
+            Visual alerts (PinkSync) ✓<br>
+            Trust violation alerts ✓<br>
+            Node down alerts ○<br>
+            SLA breach alerts ○
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SRE Metrics</div>
+          <div class="stat-value" style="color:var(--green-live);font-size:18px">ACTIVE</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-top:8px;line-height:1.8">
+            Supabase realtime ✓<br>
+            Agent success rate ✓<br>
+            Compliance pass rate ✓<br>
+            ChromaDB vectors ○
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+  // CLOCK
+  function tick() {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  // NAVIGATION
+  function show(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const panel = document.getElementById('panel-' + id);
+    if (panel) {
+      panel.classList.add('active');
+      // Reset animations
+      panel.querySelectorAll('*').forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+      });
+    }
+    // Find and activate nav item
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(`'${id}'`)) {
+        n.classList.add('active');
+      }
+    });
+  }
+
+  // NOTIFICATIONS
+  function notify(msg) {
+    const n = document.getElementById('notif');
+    n.textContent = msg;
+    n.style.display = 'block';
+    setTimeout(() => n.style.display = 'none', 3000);
+  }
+
+  // LOG STREAM
+  let streaming = false;
+  let streamInterval;
+
+  const logMessages = [
+    ['PINKSYNC-AGENT', 'dallas-hq heartbeat: healthy · 34ms · 92% uptime', 'ok'],
+    ['INTEL-OEP', 'Component 01 (Node Agents): 2/6 nodes reporting', 'info'],
+    ['FIBONROSE', 'Trust policy evaluated: node:dallas-hq score=87 → APPROVED for scan', 'ok'],
+    ['CLUSTER-ORCH', 'Cloud Run service deafauth-v2 scaled: 1→3 instances', 'ok'],
+    ['360MAGICIANS', 'IntakeAgent spawned for project:deaf-bakery-tx-2891', 'info'],
+    ['DEAFAUTH', 'Deaf identity verification approved: user:asl_entrepreneur_001', 'ok'],
+    ['PINKSYNC-NODE', 'austin-branch: Vodafone SIM data usage 1.2GB / 10GB', 'info'],
+    ['INTEL-OEP', 'Component 04 (App Orch): FundingAgent → funding.json artifact v12', 'ok'],
+    ['OBSERVABILITY', 'Supabase realtime: 14 live subscriptions active', 'info'],
+    ['FIBONROSE', 'Badge awarded: validator to user:mbtq_root', 'ok'],
+    ['VAN-001', 'Mobile node heartbeat: GPS lock · Vodafone -68dBm · VR gear OK', 'info'],
+    ['HUMAX-STB-001', 'ASL stream health 98% · 12 viewers · Dallas Community Center', 'ok'],
+    ['INTEL-OEP', 'Component 07 (Platform Svcs): DeafAUTH token rotation complete', 'ok'],
+    ['CLUSTER-ORCH', 'CAPI controller: 50 Cloud Run services healthy', 'cyan'],
+    ['CHROMADB', 'Vector index updated: 847 new log embeddings · semantic search ready', 'info'],
+    ['PINKSYNC', 'SBA compliance scan PASSED: bakery-dallas-tx project_2891', 'ok'],
+    ['360MAGICIANS', 'ValidatorAgent: VR program eligibility confirmed · WIOA qualified', 'ok'],
+    ['NVIDIA-A100', 'ASL inference job: 94ms · accuracy 99.1% · model:asl-v3', 'ok'],
+    ['INTEL-OEP', 'Component 06 (Observability): log aggregation gap detected — action needed', 'warn'],
+    ['DEAFAUTH', '300+ sign language profiles active · community verified: 847', 'cyan'],
+  ];
+
+  let logIdx = 0;
+
+  function addLog(svc, msg, type) {
+    const body = document.getElementById('log-body');
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const div = document.createElement('div');
+    div.className = `t-line t-${type}`;
+    div.innerHTML = `<span class="t-time">${time}</span><span class="t-svc">${svc}</span><span>${msg}</span>`;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    // Keep max 100 lines
+    while (body.children.length > 100) body.removeChild(body.firstChild);
+  }
+
+  function toggleStream() {
+    const btn = document.getElementById('streamBtn');
+    if (streaming) {
+      clearInterval(streamInterval);
+      streaming = false;
+      btn.textContent = '▶ Stream';
+      btn.className = 'btn btn-ghost btn-sm';
+    } else {
+      streaming = true;
+      btn.textContent = '■ Stop';
+      btn.className = 'btn btn-primary btn-sm';
+      streamInterval = setInterval(() => {
+        const [svc, msg, type] = logMessages[logIdx % logMessages.length];
+        addLog(svc, msg, type);
+        logIdx++;
+      }, 1200);
+    }
+  }
+
+  function clearLogs() {
+    document.getElementById('log-body').innerHTML = '';
+  }
+
+  // Initial boot log sequence
+  setTimeout(() => addLog('INTEL-OEP', 'Open Edge Platform v2025 — 7 components registered', 'info'), 800);
+  setTimeout(() => addLog('DEAFAUTH', 'IAM layer online · Supabase RLS active · 300+ sign languages', 'ok'), 1600);
+  setTimeout(() => addLog('PINKSYNC', 'Edge nodes discovered: dallas-hq, austin-branch, van-001, humax-001, humax-002', 'cyan'), 2400);
+  setTimeout(() => addLog('FIBONROSE', 'Trust engine warm · policy matrix loaded · 847 verified users', 'ok'), 3200);
+  setTimeout(() => addLog('360MAGICIANS', '5 agents ready: Intake · Validator · Builder · Funding · Compliance', 'ok'), 4000);
+  setTimeout(() => addLog('CLUSTER-ORCH', '50+ Cloud Run services healthy · Deno Deploy edge runtime active', 'ok'), 4800);
+  setTimeout(() => notify('🟢 MBTQ Edge Platform initialized — Intel OEP 7/7 components mapped'), 5200);
+</script>
+</body>
+</html>
