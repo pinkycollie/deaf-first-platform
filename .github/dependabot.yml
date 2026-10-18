@@ -1,92 +1,44 @@
 version: 2
+# Enable Beta features for Deno support
+enable-beta-ecosystems: true
+
 updates:
-  # Enable version updates for npm
-  - package-ecosystem: "npm"
+  # 1. Python (Core System)
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "pinkycollie"
+    groups:
+      python-all:
+        patterns: ["*"] # Grouping avoids PR spam
+
+  # 2. NPM / AI SDK (High Velocity)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily" # AI SDKs move too fast for weekly
     labels:
-      - "dependencies"
+      - "ai-sdk"
       - "automated"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
+    # Ensure AI SDKs are caught immediately
     versioning-strategy: increase
 
-  # Frontend workspace
-  - package-ecosystem: "npm"
-    directory: "/frontend"
+  # 3. NEW: Deno (For Edge/GCP Functions)
+  - package-ecosystem: "deno"
+    directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "frontend"
 
-  # Backend workspace
-  - package-ecosystem: "npm"
-    directory: "/backend"
+  # 4. NEW: Docker (GCP Infrastructure)
+  - package-ecosystem: "docker"
+    directory: "/" 
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
+      interval: "monthly" # Base images are more stable
     labels:
-      - "dependencies"
-      - "backend"
+      - "infrastructure"
 
-  # Services workspaces
-  - package-ecosystem: "npm"
-    directory: "/services/deafauth"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "deafauth"
-
-  - package-ecosystem: "npm"
-    directory: "/services/pinksync"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "pinksync"
-
-  - package-ecosystem: "npm"
-    directory: "/services/fibonrose"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "fibonrose"
-
-  - package-ecosystem: "npm"
-    directory: "/services/accessibility-nodes"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "accessibility"
-
-  - package-ecosystem: "npm"
-    directory: "/ai"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "ai"
-
-  # GitHub Actions updates
+  # 5. GitHub Actions (CI/CD)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-    labels:
-      - "dependencies"
-      - "github-actions"

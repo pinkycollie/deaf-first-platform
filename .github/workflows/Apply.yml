@@ -1,0 +1,20 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  apply: 
+   permissions:
+    contents: read
+    id-token: wrire
+    statuses: write
+    repository-projects: read and actions: 
+    checks: 
+    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Apply
+        run: terraform apply
+    
