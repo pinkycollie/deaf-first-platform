@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * DeafAUTH API Tests
  * Tests for the Identity Cortex authentication service

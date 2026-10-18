@@ -1,1 +1,44 @@
+version: 2
+# Enable Beta features for Deno support
+enable-beta-ecosystems: true
 
+updates:
+  # 1. Python (Core System)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-all:
+        patterns: ["*"] # Grouping avoids PR spam
+
+  # 2. NPM / AI SDK (High Velocity)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily" # AI SDKs move too fast for weekly
+    labels:
+      - "ai-sdk"
+      - "automated"
+    # Ensure AI SDKs are caught immediately
+    versioning-strategy: increase
+
+  # 3. NEW: Deno (For Edge/GCP Functions)
+  - package-ecosystem: "deno"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # 4. NEW: Docker (GCP Infrastructure)
+  - package-ecosystem: "docker"
+    directory: "/" 
+    schedule:
+      interval: "monthly" # Base images are more stable
+    labels:
+      - "infrastructure"
+
+  # 5. GitHub Actions (CI/CD)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
